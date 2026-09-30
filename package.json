@@ -5,10 +5,11 @@
   "description": "Production-Ready Dynamic Mass Email Dispatcher with Google OAuth & SMTP",
   "private": true,
   "scripts": {
-    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client install && npm --prefix client run build && npm --prefix server install",
+    "start": "node server/index.js",
+    "dev": "node run-dev.js",
     "server": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
-    "dev": "node run-dev.js",
-    "start": "node run-dev.js"
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
   }
 }
