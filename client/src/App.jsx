@@ -369,10 +369,30 @@ export default function App() {
             lineHeight: '1.5',
             display: 'flex',
             alignItems: 'flex-start',
+            justifyContent: 'space-between',
             gap: '10px'
           }}>
-            <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div>{errorMsg}</div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>{errorMsg}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMsg('')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fb7185',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                padding: '0 4px',
+                lineHeight: 1
+              }}
+              title="Dismiss"
+            >
+              ✕
+            </button>
           </div>
         )}
 
