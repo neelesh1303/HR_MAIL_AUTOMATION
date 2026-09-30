@@ -1,0 +1,113 @@
+{
+  "auth": {
+    "type": null,
+    "email": "",
+    "name": "",
+    "avatar": "",
+    "googleClientId": "",
+    "googleClientSecret": "",
+    "tokens": null,
+    "smtpUser": "",
+    "smtpPassword": "",
+    "smtpHost": "smtp.gmail.com",
+    "smtpPort": 465,
+    "smtpSecure": true,
+    "isConnected": false,
+    "lastChecked": null
+  },
+  "settings": {
+    "defaultSenderName": "",
+    "defaultReplyTo": "",
+    "sendDelayMs": 2000,
+    "randomDelayJitterMs": 1000,
+    "batchSize": 50,
+    "maxRetries": 2,
+    "enableTrackingPixel": false
+  },
+  "templates": [
+    {
+      "id": "tpl-1",
+      "name": "Professional Partnership / B2B Outreach",
+      "category": "Sales & BD",
+      "subject": "Partnership opportunity with {{company || \"your team\"}} & PostMaster",
+      "body": "<p>Hi {{first_name || \"there\"}},</p>\n<p>I hope this email finds you well!</p>\n<p>I have been following the incredible growth at <strong>{{company || \"your organization\"}}</strong> and wanted to reach out directly regarding our shared work in digital acceleration.</p>\n<p>We recently helped similar teams streamline their workflows and increase client engagement by over <strong>35%</strong> within 30 days.</p>\n<p>I've attached our brief overview document for your review. Would you be open to a 10-minute introductory call next Tuesday or Wednesday?</p>\n<p>Best regards,<br><strong>{{sender_name || \"Alex Morgan\"}}</strong><br>PostMaster Studio</p>",
+      "createdAt": "2026-09-30T09:31:26.812Z"
+    },
+    {
+      "id": "tpl-2",
+      "name": "Job Application & Portfolio Follow-up",
+      "category": "Career",
+      "subject": "Application for {{role || \"Open Role\"}} &bull; {{first_name}} {{last_name}}",
+      "body": "<p>Dear {{name || \"Hiring Team\"}},</p>\n<p>I am writing to express my strong interest in the <strong>{{role || \"Software Specialist\"}}</strong> position at <strong>{{company || \"your esteemed company\"}}</strong>.</p>\n<p>With a proven track record of delivering high-impact projects and scalable architectures, I am excited about the prospect of contributing to your team's upcoming milestones.</p>\n<p>Please find my updated resume and portfolio presentation attached. I would welcome the opportunity to discuss how my skill set aligns with your current priorities.</p>\n<p>Thank you for your time and consideration.</p>\n<p>Sincerely,<br><strong>{{sender_name || \"Your Name\"}}</strong></p>",
+      "createdAt": "2026-09-30T09:31:26.813Z"
+    },
+    {
+      "id": "tpl-3",
+      "name": "Exclusive Event & Product Launch Invitation",
+      "category": "Marketing",
+      "subject": "VIP Invitation: Exclusive Access for {{name || \"You\"}}",
+      "body": "<p>Hello {{first_name || \"Valued Guest\"}},</p>\n<p>We are delighted to extend a special invitation to you for our exclusive upcoming launch event.</p>\n<p>As a key leader in the industry, we want to provide you with early access to our newest capabilities before public release.</p>\n<ul>\n  <li><strong>Date:</strong> October 15th, 2026</li>\n  <li><strong>Format:</strong> Live Interactive Stream & Private Q&A</li>\n  <li><strong>Access Code:</strong> VIP-{{custom_code || \"POSTMASTER\"}}</li>\n</ul>\n<p>Please check the attached agenda document for complete session details and speaker line-up. Looking forward to hosting you!</p>\n<p>Warmly,<br><strong>The Events Team</strong></p>",
+      "createdAt": "2026-09-30T09:31:26.813Z"
+    },
+    {
+      "id": "tpl-4",
+      "name": "Client Invoice & Documentation Dispatch",
+      "category": "Finance",
+      "subject": "Invoice #{{invoice_no || \"2026-09\"}} for {{company || \"Services Rendered\"}}",
+      "body": "<p>Hi {{first_name || \"Client\"}},</p>\n<p>Thank you for your ongoing partnership with us. Attached please find invoice <strong>#{{invoice_no || \"INV-001\"}}</strong> for the recent milestones completed.</p>\n<p><strong>Summary:</strong></p>\n<ul>\n  <li><strong>Service:</strong> {{service_name || \"Digital Consulting & Delivery\"}}</li>\n  <li><strong>Total Due:</strong> {{amount || \"$1,500.00\"}}</li>\n  <li><strong>Due Date:</strong> {{due_date || \"Within 14 days\"}}</li>\n</ul>\n<p>If you have any questions regarding the breakdown or payment options, please feel free to reply directly to this email.</p>\n<p>Kind regards,<br><strong>Accounts & Finance Team</strong></p>",
+      "createdAt": "2026-09-30T09:31:26.813Z"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "camp-1790793300533",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Tripathi",
+      "recipients": [
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<ce0fd3ae-f905-bb34-c29c-2b780065e8e8@gmail.com>",
+          "sentAt": "2026-09-30T18:34:43.467Z"
+        },
+        {
+          "email": "neeleshtripathi36@gmail.com",
+          "name": "shubh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<95c58270-457b-109f-8a03-b035a4d77ce9@gmail.com>",
+          "sentAt": "2026-09-30T18:34:49.462Z"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "tingu",
+          "company": "",
+          "status": "sent",
+          "messageId": "<a798107a-db3d-9828-2261-8cb2ddf91c1e@gmail.com>",
+          "sentAt": "2026-09-30T18:34:54.908Z"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "pingu",
+          "company": "",
+          "status": "sent",
+          "messageId": "<4ad9eb05-46c0-23b2-1675-8cbde3ab7663@gmail.com>",
+          "sentAt": "2026-09-30T18:35:00.533Z"
+        }
+      ],
+      "stats": {
+        "total": 4,
+        "sent": 4,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-09-30T18:35:00.545Z",
+      "completedAt": "2026-09-30T18:35:00.545Z",
+      "status": "completed"
+    }
+  ]
+}
