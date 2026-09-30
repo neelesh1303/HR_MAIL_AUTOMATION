@@ -82,7 +82,10 @@ Thank you,
 ];
 
 export default function App() {
-  // 1. Sender Credentials
+  // 1. Sender Credentials & Provider
+  const [provider, setProvider] = useState(localStorage.getItem('pm_provider') || 'resend'); // 'resend' | 'gmail' | 'brevo'
+  const [resendApiKey, setResendApiKey] = useState(localStorage.getItem('pm_resend_key') || '');
+  const [brevoApiKey, setBrevoApiKey] = useState(localStorage.getItem('pm_brevo_key') || '');
   const [senderEmail, setSenderEmail] = useState(localStorage.getItem('pm_sender_email') || '');
   const [appPassword, setAppPassword] = useState(localStorage.getItem('pm_app_pwd') || '');
   const [senderName, setSenderName] = useState(localStorage.getItem('pm_sender_name') || '');
@@ -225,8 +228,18 @@ export default function App() {
     setErrorMsg('');
     setResults(null);
 
-    if (!senderEmail.trim() || !appPassword.trim()) {
+    if (provider === 'gmail' && (!senderEmail.trim() || !appPassword.trim())) {
       setErrorMsg('Please enter your Gmail address and 16-character Google App Password.');
+      return;
+    }
+
+    if (provider === 'resend' && !resendApiKey.trim()) {
+      setErrorMsg('Please enter your Resend API Key (get one free at resend.com).');
+      return;
+    }
+
+    if (provider === 'brevo' && !brevoApiKey.trim()) {
+      setErrorMsg('Please enter your Brevo API Key (get one free at brevo.com).');
       return;
     }
 
@@ -249,6 +262,8 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          provider,
+          apiKey: provider === 'resend' ? resendApiKey.trim() : (provider === 'brevo' ? brevoApiKey.trim() : ''),
           senderEmail: senderEmail.trim(),
           appPassword: appPassword.replace(/\s+/g, ''),
           senderName: senderName.trim(),
@@ -363,7 +378,7 @@ export default function App() {
 
         <form onSubmit={handleStartDispatch} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* STEP 1: Your Gmail Connection */}
+          {/* STEP 1: Your Email Dispatch Provider */}
           <div style={{
             background: '#111622',
             border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -385,92 +400,330 @@ export default function App() {
                   fontSize: '0.8rem',
                   fontWeight: 700
                 }}>1</span>
-                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Your Google / Gmail Account</h3>
+                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Select Dispatch Method & Sender Credentials</h3>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowPasswordGuide(!showPasswordGuide)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#818cf8',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                <HelpCircle size={14} />
-                <span>{showPasswordGuide ? 'Close Guide' : 'How to get Google App Password?'}</span>
-              </button>
+              {/* Provider Selection Tabs */}
+              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', padding: '3px', borderRadius: '8px', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setProvider('resend'); localStorage.setItem('pm_provider', 'resend'); }}
+                  style={{
+                    background: provider === 'resend' ? '#6366f1' : 'transparent',
+                    color: provider === 'resend' ? '#fff' : '#94a3b8',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ⚡ Resend API (Cloud / Free Tier)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setProvider('gmail'); localStorage.setItem('pm_provider', 'gmail'); }}
+                  style={{
+                    background: provider === 'gmail' ? '#6366f1' : 'transparent',
+                    color: provider === 'gmail' ? '#fff' : '#94a3b8',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  ✉️ Gmail App Password (Localhost)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setProvider('brevo'); localStorage.setItem('pm_provider', 'brevo'); }}
+                  style={{
+                    background: provider === 'brevo' ? '#6366f1' : 'transparent',
+                    color: provider === 'brevo' ? '#fff' : '#94a3b8',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  🚀 Brevo API
+                </button>
+              </div>
             </div>
 
-            {/* Guide Accordion */}
-            {showPasswordGuide && (
-              <div style={{
-                background: 'rgba(99, 102, 241, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                marginBottom: '14px',
-                fontSize: '0.82rem',
-                lineHeight: '1.5',
-                color: '#cbd5e1'
-              }}>
-                <strong>How to generate 16-letter App Password in 30 seconds:</strong>
-                <ol style={{ paddingLeft: '18px', marginTop: '6px' }}>
-                  <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>myaccount.google.com/apppasswords <ExternalLink size={11} style={{ display: 'inline' }} /></a></li>
-                  <li>Ensure <strong>2-Step Verification</strong> is enabled.</li>
-                  <li>Type name <code>HREmailBot</code> and click <strong>Create</strong>.</li>
-                  <li>Paste the 16-character code below.</li>
-                </ol>
+            {/* Provider 1: RESEND (Cloud HTTPS) */}
+            {provider === 'resend' && (
+              <div>
+                <div style={{
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  marginBottom: '14px',
+                  fontSize: '0.82rem',
+                  color: '#cbd5e1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  <div>
+                    <strong style={{ color: '#818cf8' }}>⚡ Cloud-Compatible (HTTPS):</strong> 3,000 free emails/month. Works on Render, Railway, and localhost with zero port blocks.
+                  </div>
+                  <a
+                    href="https://resend.com/signup"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      color: '#38bdf8',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    Get Free Resend API Key <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Resend API Key (starts with <code>re_...</code>)
+                    </label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="re_xxxxxxxxxxxxxxxx"
+                      value={resendApiKey}
+                      onChange={(e) => { setResendApiKey(e.target.value); localStorage.setItem('pm_resend_key', e.target.value); }}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Your Contact / Reply-To Email
+                    </label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="your.email@gmail.com"
+                      value={senderEmail}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Your Full Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Neelesh Tripathi"
+                      value={senderName}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '12px' }}>
+            {/* Provider 2: GMAIL APP PASSWORD (SMTP) */}
+            {provider === 'gmail' && (
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                  Your Gmail Address
-                </label>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="your.email@gmail.com"
-                  value={senderEmail}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  required
-                />
-              </div>
+                <div style={{
+                  background: 'rgba(234, 179, 8, 0.08)',
+                  border: '1px solid rgba(234, 179, 8, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  marginBottom: '14px',
+                  fontSize: '0.82rem',
+                  color: '#cbd5e1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  <div>
+                    <strong style={{ color: '#facc15' }}>⚠️ Note for Cloud Hosts:</strong> Gmail SMTP (port 587) works on localhost, but free cloud hosts (Render/Railway trial) block raw SMTP sockets.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordGuide(!showPasswordGuide)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#38bdf8',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <HelpCircle size={13} />
+                    <span>{showPasswordGuide ? 'Close Guide' : 'How to get App Password?'}</span>
+                  </button>
+                </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                  Google App Password
-                </label>
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="xxxx xxxx xxxx xxxx"
-                  value={appPassword}
-                  onChange={(e) => handlePwdChange(e.target.value)}
-                  required
-                />
-              </div>
+                {/* Guide Accordion */}
+                {showPasswordGuide && (
+                  <div style={{
+                    background: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    marginBottom: '14px',
+                    fontSize: '0.82rem',
+                    lineHeight: '1.5',
+                    color: '#cbd5e1'
+                  }}>
+                    <strong>How to generate 16-letter App Password in 30 seconds:</strong>
+                    <ol style={{ paddingLeft: '18px', marginTop: '6px' }}>
+                      <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>myaccount.google.com/apppasswords <ExternalLink size={11} style={{ display: 'inline' }} /></a></li>
+                      <li>Ensure <strong>2-Step Verification</strong> is enabled.</li>
+                      <li>Type name <code>HREmailBot</code> and click <strong>Create</strong>.</li>
+                      <li>Paste the 16-character code below.</li>
+                    </ol>
+                  </div>
+                )}
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                  Your Full Name
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Alex Morgan"
-                  value={senderName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Your Gmail Address
+                    </label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="your.email@gmail.com"
+                      value={senderEmail}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Google App Password
+                    </label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="xxxx xxxx xxxx xxxx"
+                      value={appPassword}
+                      onChange={(e) => handlePwdChange(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Your Full Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Neelesh Tripathi"
+                      value={senderName}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Provider 3: BREVO (Cloud HTTPS) */}
+            {provider === 'brevo' && (
+              <div>
+                <div style={{
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  marginBottom: '14px',
+                  fontSize: '0.82rem',
+                  color: '#cbd5e1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  <div>
+                    <strong style={{ color: '#818cf8' }}>🚀 Brevo HTTPS REST API:</strong> 300 free emails/day. Bypasses cloud port blocks over HTTPS.
+                  </div>
+                  <a
+                    href="https://app.brevo.com/settings/keys/api"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      color: '#38bdf8',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    Get Brevo API Key <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Brevo API Key (starts with <code>xkeysib-...</code>)
+                    </label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="xkeysib-xxxxxxxxxxxxxxxx"
+                      value={brevoApiKey}
+                      onChange={(e) => { setBrevoApiKey(e.target.value); localStorage.setItem('pm_brevo_key', e.target.value); }}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Verified Brevo Sender Email
+                    </label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="your.email@domain.com"
+                      value={senderEmail}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                      Your Full Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Neelesh Tripathi"
+                      value={senderName}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* STEP 2: HR Contacts Sheet Upload & Grid */}

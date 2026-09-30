@@ -139,6 +139,8 @@ router.post('/stop', (req, res) => {
 router.post('/direct', async (req, res) => {
   try {
     const { 
+      provider = 'gmail', // 'gmail' | 'resend' | 'brevo'
+      apiKey,
       senderEmail, 
       appPassword, 
       senderName, 
@@ -149,8 +151,12 @@ router.post('/direct', async (req, res) => {
       skipDuplicates = true
     } = req.body;
 
-    if (!senderEmail || !appPassword) {
+    if (provider === 'gmail' && (!senderEmail || !appPassword)) {
       return res.status(400).json({ error: 'Sender Gmail and Google App Password are required' });
+    }
+
+    if ((provider === 'resend' || provider === 'brevo') && !apiKey && !appPassword) {
+      return res.status(400).json({ error: `Please enter your ${provider === 'resend' ? 'Resend' : 'Brevo'} API key` });
     }
 
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
@@ -162,16 +168,18 @@ router.post('/direct', async (req, res) => {
     }
 
     const credentials = {
-      email: senderEmail.trim(),
-      password: appPassword.replace(/\s+/g, ''),
-      name: senderName || senderEmail.split('@')[0]
+      provider,
+      apiKey: (apiKey || appPassword || '').trim(),
+      email: (senderEmail || '').trim(),
+      password: (appPassword || apiKey || '').replace(/\s+/g, ''),
+      name: senderName || (senderEmail ? senderEmail.split('@')[0] : 'Applicant')
     };
 
     // Test credentials first
     const testConn = await testConnection(credentials);
     if (!testConn.success) {
       return res.status(400).json({ 
-        error: `Authentication failed: ${testConn.error}. Make sure 2-Step Verification is on and use a 16-letter App Password.` 
+        error: `Authentication failed: ${testConn.error}` 
       });
     }
 
