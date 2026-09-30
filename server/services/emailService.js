@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { db } from '../db.js';
+import { config } from '../config.js';
 import { getOAuth2Client } from './googleOAuthService.js';
 import path from 'path';
 import fs from 'fs';
@@ -8,14 +9,20 @@ import fs from 'fs';
 export async function createTransporter(explicitCredentials = null) {
   if (explicitCredentials && explicitCredentials.email && explicitCredentials.password) {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // TLS via STARTTLS (essential for cloud platforms like Render)
+      requireTLS: true,
       auth: {
         user: explicitCredentials.email.trim(),
         pass: explicitCredentials.password.replace(/\s+/g, '')
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000
     });
     return { 
       transporter, 
@@ -85,23 +92,37 @@ export async function testConnection(credentials = null) {
 export async function sendSingleEmail({ to, subject, htmlContent, textContent, attachments = [], senderName = '', replyTo = '', credentials = null }) {
   const { transporter, senderEmail, senderName: defaultName } = await createTransporter(credentials);
 
-  const formattedAttachments = attachments.map(att => {
-    if (att.path && fs.existsSync(att.path)) {
-      return {
-        filename: att.filename || att.originalname || path.basename(att.path),
-        path: att.path,
-        contentType: att.mimetype
-      };
-    } else if (att.content) {
-      return {
-        filename: att.filename || 'attachment',
-        content: att.content,
-        encoding: att.encoding || 'base64',
-        contentType: att.mimetype
-      };
-    }
-    return att;
-  });
+  const formattedAttachments = (attachments || [])
+    .map(att => {
+      if (!att) return null;
+      if (att.path && fs.existsSync(att.path)) {
+        return {
+          filename: att.originalname || att.filename || path.basename(att.path),
+          path: att.path,
+          contentType: att.mimetype
+        };
+      }
+      if (att.filename) {
+        const fallbackPath = path.join(config.uploadsDir, att.filename);
+        if (fs.existsSync(fallbackPath)) {
+          return {
+            filename: att.originalname || att.filename,
+            path: fallbackPath,
+            contentType: att.mimetype
+          };
+        }
+      }
+      if (att.content) {
+        return {
+          filename: att.filename || att.originalname || 'attachment',
+          content: att.content,
+          encoding: att.encoding || 'base64',
+          contentType: att.mimetype
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
 
   const fromDisplayName = senderName || defaultName || senderEmail;
   const mailOptions = {

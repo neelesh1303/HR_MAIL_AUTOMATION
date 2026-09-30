@@ -275,6 +275,14 @@ export default function App() {
       if (data.sent > 0) {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         showToast(`Campaign Complete! Sent: ${data.sent}, Skipped: ${data.skipped || 0}, Failed: ${data.failed || 0}`);
+      } else {
+        showToast(`Dispatch finished: ${data.sent || 0} sent, ${data.skipped || 0} skipped, ${data.failed || 0} failed.`);
+        if (data.failed > 0) {
+          const firstErr = data.results?.find(r => r.status === 'failed')?.error;
+          setErrorMsg(`Failed: ${firstErr || 'Check results below'}`);
+        } else if (data.skipped > 0 && data.sent === 0) {
+          setErrorMsg('All contacts were skipped because duplicate protection is enabled and they were contacted in a previous session.');
+        }
       }
     } catch (err) {
       setErrorMsg(err.message || 'Dispatch failed. Check your Gmail credentials.');
