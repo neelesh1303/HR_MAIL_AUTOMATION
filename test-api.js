@@ -1,37 +1,40 @@
 async function runTests() {
-  console.log('Testing PostMaster API Endpoints...');
+  console.log('Testing HR Email App Engine Endpoints...');
 
   // 1. Health
   const healthRes = await fetch('http://localhost:5000/api/health');
   const health = await healthRes.json();
   console.log('✔ Health Check:', health);
 
-  // 2. Auth Status
-  const authRes = await fetch('http://localhost:5000/api/auth/status');
-  const auth = await authRes.json();
-  console.log('✔ Auth Status Check:', auth);
-
-  // 3. Dynamic Template Preview
-  const previewRes = await fetch('http://localhost:5000/api/send/preview', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      subject: 'Partnership opportunity with {{company || "your company"}} & PostMaster',
-      body: '<p>Hi {{first_name || "Friend"}}, we love {{company || "your product"}}!</p>',
-      recipient: {
-        email: 'elena.rostova@techflow.ai',
-        company: 'TechFlow AI'
-      },
-      senderName: 'Alex Morgan'
-    })
-  });
-  const preview = await previewRes.json();
-  console.log('✔ Dynamic Template Preview Check:', preview);
-
-  // 4. Templates Library
+  // 2. Templates
   const tplRes = await fetch('http://localhost:5000/api/templates');
   const templates = await tplRes.json();
   console.log(`✔ Templates Loaded (${templates.length} templates):`, templates.map(t => t.name));
+
+  // 3. Dynamic Template Preview
+  const previewRes = await fetch('http://localhost:5000/api/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subject: 'Application for {{role || "Software Engineer"}} • {{name || "Hiring Team"}} at {{company || "your team"}}',
+      body: 'Dear {{name || "Hiring Team"}},\n\nI am excited to apply for roles at {{company || "your company"}}.',
+      recipient: {
+        email: 'elena.rostova@techflow.ai',
+        name: 'Elena Rostova',
+        company: 'TechFlow AI',
+        role: 'Full Stack Engineer'
+      },
+      senderName: 'Neelesh Tripathi',
+      senderEmail: 'neelesh@gmail.com'
+    })
+  });
+  const preview = await previewRes.json();
+  console.log('✔ Dynamic Preview Check:', preview);
+
+  // 4. Past Campaigns History
+  const campRes = await fetch('http://localhost:5000/api/campaigns');
+  const campaigns = await campRes.json();
+  console.log(`✔ Campaigns Log Loaded: ${campaigns.length} past runs`);
 
   // 5. Frontend Vite Server
   const clientRes = await fetch('http://localhost:5173/');

@@ -1,47 +1,40 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Send, 
-  Paperclip, 
+  Upload, 
   FileText, 
-  Trash2, 
   CheckCircle2, 
-  XCircle, 
-  Loader2, 
-  HelpCircle, 
+  AlertCircle, 
+  ExternalLink, 
+  Trash2, 
+  Plus, 
+  Download, 
+  Eye, 
+  RefreshCw, 
   Sparkles, 
-  Key, 
-  Mail, 
-  Users, 
-  Check, 
-  ExternalLink,
-  ShieldCheck,
-  AlertCircle,
-  FileSpreadsheet,
-  Upload,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Building2,
-  RefreshCw,
-  Shield
+  ShieldCheck, 
+  KeyRound, 
+  HelpCircle,
+  X,
+  Clock,
+  History,
+  Mail
 } from 'lucide-react';
-import { api } from './utils/api';
 import confetti from 'canvas-confetti';
-import Papa from 'papaparse';
+import * as xlsx from 'xlsx';
 
 const DEFAULT_TEMPLATES = [
   {
     id: 't1',
-    name: 'Standard Cold Job Outreach (Role & Company targeted)',
-    subject: 'Application for Software Engineer • {{name || "Hiring Team"}} at {{company || "your team"}}',
+    name: 'Standard Cold Job Outreach',
+    subject: 'Application for {{role || "Software Engineer"}} • {{name || "Hiring Team"}} at {{company || "your team"}}',
     body: `Dear {{name || "Hiring Team"}},
 
 I hope you are doing well.
 
-I am writing to express my interest in software engineering opportunities at {{company || "your company"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.
+I am writing to express my strong interest in {{role || "Software Engineer"}} opportunities at {{company || "your company"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills, clean coding practices, and problem-solving background to your team.
 
-I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.
+I have attached my updated resume for your review. I would welcome the opportunity to connect for a brief 10-minute chat regarding upcoming openings at {{company}}.
 
 Thank you for your time and consideration!
 
@@ -57,12 +50,13 @@ Best regards,
 
 I hope this email finds you well.
 
-I am reaching out regarding analytics and engineering roles at {{company || "your organization"}}. I have extensive experience building scalable pipelines, data models, and analytical dashboards that drive tangible business insights.
+I am reaching out regarding analytics and engineering roles at {{company || "your organization"}}. I have extensive experience building scalable data pipelines, data models, and analytical dashboards that drive tangible business impact.
 
-Please find my resume attached for your reference. I would love to connect for a quick 10-minute chat regarding how I can contribute to {{company}}'s data initiatives.
+Please find my resume attached for your reference. I would love to connect for a quick 10-minute conversation regarding how I can contribute to {{company}}'s data initiatives.
 
 Warm regards,
-{{sender_name || "Your Name"}}`
+{{sender_name || "Your Name"}}
+{{sender_email || "your-email@gmail.com"}}`
   },
   {
     id: 't3',
@@ -77,21 +71,25 @@ With a strong foundation in full-stack architecture, clean code practices, and r
 My resume is attached for your review. I would appreciate the chance to discuss any relevant openings.
 
 Thank you,
-{{sender_name || "Your Name"}}`
+{{sender_name || "Your Name"}}
+{{sender_email || "your-email@gmail.com"}}`
   }
 ];
 
 export default function App() {
-  // 1. Sender Credentials & Provider
-  const [provider, setProvider] = useState(localStorage.getItem('pm_provider') || 'resend'); // 'resend' | 'gmail' | 'brevo'
-  const [resendApiKey, setResendApiKey] = useState(localStorage.getItem('pm_resend_key') || '');
+  // 1. Sender Credentials
+  const [provider, setProvider] = useState(localStorage.getItem('pm_provider') || 'gmail');
+  const [senderEmail, setSenderEmail] = useState(localStorage.getItem('pm_email') || '');
+  const [appPassword, setAppPassword] = useState(localStorage.getItem('pm_pass') || '');
   const [brevoApiKey, setBrevoApiKey] = useState(localStorage.getItem('pm_brevo_key') || '');
-  const [senderEmail, setSenderEmail] = useState(localStorage.getItem('pm_sender_email') || '');
-  const [appPassword, setAppPassword] = useState(localStorage.getItem('pm_app_pwd') || '');
-  const [senderName, setSenderName] = useState(localStorage.getItem('pm_sender_name') || '');
+  const [senderName, setSenderName] = useState(localStorage.getItem('pm_name') || '');
   const [showPasswordGuide, setShowPasswordGuide] = useState(false);
+  
+  // Verification State
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState(null); // { success: boolean, message: string }
 
-  // 2. HR Contact List / Sheet
+  // 2. HR Contact List
   const [hrList, setHrList] = useState([
     { id: '1', name: 'Sarah Jenkins', email: 'sarah.recruiter@google.com', company: 'Google', role: 'Software Engineer' },
     { id: '2', name: 'David Wilson', email: 'david.talent@microsoft.com', company: 'Microsoft', role: 'Backend Engineer' },
@@ -101,171 +99,264 @@ export default function App() {
   const [sheetFileName, setSheetFileName] = useState('');
   const [skipDuplicates, setSkipDuplicates] = useState(false);
 
-  // 3. Email Template & Personalization
+  // Manual Contact Input Form
+  const [newContact, setNewContact] = useState({ name: '', email: '', company: '', role: '' });
+  const [showAddContact, setShowAddContact] = useState(false);
+
+  // 3. Email Template & Resume
   const [selectedTemplateId, setSelectedTemplateId] = useState('t1');
   const [subject, setSubject] = useState(DEFAULT_TEMPLATES[0].subject);
   const [body, setBody] = useState(DEFAULT_TEMPLATES[0].body);
-
-  // 4. Resume Attachment
   const [resumeFile, setResumeFile] = useState(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+
+  // 4. Live Preview Modal
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+
+  // 5. History Modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyCampaigns, setHistoryCampaigns] = useState([]);
+
+  // 6. Sending & Results State
+  const [isSending, setIsSending] = useState(false);
+  const [progressMsg, setProgressMsg] = useState('');
+  const [results, setResults] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
+
   const resumeInputRef = useRef(null);
   const sheetInputRef = useRef(null);
 
-  // 5. Preview Modal / Slider State
-  const [previewIndex, setPreviewIndex] = useState(0);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-
-  // 6. Sending Status & Audit Log
-  const [isSending, setIsSending] = useState(false);
-  const [results, setResults] = useState(null);
-  const [progressText, setProgressText] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [toastMsg, setToastMsg] = useState(null);
-
-  // Sync sender info to localStorage
-  const handleEmailChange = (v) => { setSenderEmail(v); localStorage.setItem('pm_sender_email', v); };
-  const handlePwdChange = (v) => { setAppPassword(v); localStorage.setItem('pm_app_pwd', v); };
-  const handleNameChange = (v) => { setSenderName(v); localStorage.setItem('pm_sender_name', v); };
-
   const showToast = (msg) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(''), 4000);
   };
 
-  // Switch template
-  const handleSelectTemplate = (id) => {
-    setSelectedTemplateId(id);
-    const t = DEFAULT_TEMPLATES.find(x => x.id === id);
-    if (t) {
-      setSubject(t.subject);
-      setBody(t.body);
-      showToast(`Loaded "${t.name}"`);
+  const handleEmailChange = (val) => {
+    setSenderEmail(val);
+    localStorage.setItem('pm_email', val);
+  };
+
+  const handlePasswordChange = (val) => {
+    setAppPassword(val);
+    localStorage.setItem('pm_pass', val);
+  };
+
+  const handleNameChange = (val) => {
+    setSenderName(val);
+    localStorage.setItem('pm_name', val);
+  };
+
+  // Test credentials connection
+  const handleTestCredentials = async () => {
+    setIsVerifying(true);
+    setVerifyStatus(null);
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider,
+          email: senderEmail.trim(),
+          appPassword: appPassword.replace(/\s+/g, ''),
+          apiKey: provider === 'brevo' ? brevoApiKey.trim() : '',
+          senderName: senderName.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+      setVerifyStatus({ success: true, message: data.message || 'Credentials verified successfully!' });
+      showToast('Credentials verified successfully!');
+    } catch (err) {
+      setVerifyStatus({ success: false, message: err.message });
+      setErrorMsg(`Verification failed: ${err.message}`);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
-  // Upload HR Excel / CSV sheet
+  // Handle Sheet Upload (.xlsx, .xls, .csv)
   const handleSheetUpload = async (e) => {
-    const file = e.target.files && e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingSheet(true);
     setErrorMsg('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const res = await api.uploadRecipientsFile(file);
-      if (res.recipients && res.recipients.length > 0) {
-        setHrList(res.recipients);
+      const res = await fetch('/api/parse-sheet', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to parse file');
+
+      if (data.recipients && data.recipients.length > 0) {
+        setHrList(data.recipients);
         setSheetFileName(file.name);
-        showToast(`Imported ${res.recipients.length} HR contacts from ${file.name}!`);
+        showToast(`Loaded ${data.recipients.length} HR contacts from ${file.name}!`);
       } else {
-        setErrorMsg('No valid email rows found in the uploaded file.');
+        throw new Error('No valid email addresses found in the uploaded file.');
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to parse HR contacts file.');
+      setErrorMsg(err.message);
     } finally {
       setIsUploadingSheet(false);
+      if (sheetInputRef.current) sheetInputRef.current.value = '';
     }
   };
 
-  // Upload Resume PDF
+  // Handle Resume Upload
   const handleResumeUpload = async (e) => {
-    const file = e.target.files && e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 25 * 1024 * 1024) {
-      setErrorMsg('Resume file size exceeds 25MB limit.');
-      return;
-    }
 
     setIsUploadingResume(true);
     setErrorMsg('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const res = await api.uploadAttachment(file);
-      setResumeFile(res);
-      showToast(`Resume attached: ${file.name}`);
+      const res = await fetch('/api/upload-resume', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      setResumeFile(data);
+      showToast(`Resume attached: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to upload resume file.');
+      setErrorMsg(`Resume upload failed: ${err.message}`);
     } finally {
       setIsUploadingResume(false);
+      if (resumeInputRef.current) resumeInputRef.current.value = '';
     }
   };
 
-  // Download sample HR spreadsheet
-  const handleDownloadSampleSheet = () => {
-    const sample = [
-      { 'HR Name': 'Sarah Jenkins', 'HR Email': 'sarah@google.com', 'Company Name': 'Google', 'Role': 'Software Engineer' },
-      { 'HR Name': 'David Wilson', 'HR Email': 'david@microsoft.com', 'Company Name': 'Microsoft', 'Role': 'Backend Developer' },
-      { 'HR Name': 'Elena Rostova', 'HR Email': 'elena@amazon.com', 'Company Name': 'Amazon', 'Role': 'Full Stack Engineer' }
+  // Download Sample Spreadsheet
+  const handleDownloadSample = () => {
+    const sampleData = [
+      { 'HR Name': 'Sundar Pichai', 'Company': 'Google', 'HR Email': 'recruiter@google.com', 'Target Role': 'Software Engineer' },
+      { 'HR Name': 'Satya Nadella', 'Company': 'Microsoft', 'HR Email': 'talent@microsoft.com', 'Target Role': 'Frontend Engineer' },
+      { 'HR Name': 'Andy Jassy', 'Company': 'Amazon', 'HR Email': 'hiring@amazon.com', 'Target Role': 'Full Stack Developer' },
+      { 'HR Name': 'Tim Cook', 'Company': 'Apple', 'HR Email': 'jobs@apple.com', 'Target Role': 'Backend Developer' }
     ];
-    const csv = Papa.unparse(sample);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sample_hr_contacts.csv';
-    a.click();
-    showToast('Downloaded sample HR spreadsheet!');
+    const ws = xlsx.utils.json_to_sheet(sampleData);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, 'HR_Contacts');
+    xlsx.writeFile(wb, 'sample_hr_contacts.xlsx');
   };
 
-  // Helper: Render preview for a given contact
-  const renderPersonalized = (templateText, contact) => {
-    if (!templateText) return '';
-    return templateText
-      .replace(/\{\{\s*company\s*(?:\|\||\|)\s*(?:"|'|)(.*?)(?:"|'|)\s*\}\}/gi, contact?.company || '$1')
-      .replace(/\{\{\s*company\s*\}\}/gi, contact?.company || 'your company')
-      .replace(/\{\{\s*name\s*(?:\|\||\|)\s*(?:"|'|)(.*?)(?:"|'|)\s*\}\}/gi, contact?.name || '$1')
-      .replace(/\{\{\s*name\s*\}\}/gi, contact?.name || 'Hiring Team')
-      .replace(/\{\{\s*role\s*\}\}/gi, contact?.role || 'Software Engineer')
-      .replace(/\{\{\s*sender_name\s*(?:\|\||\|)\s*(?:"|'|)(.*?)(?:"|'|)\s*\}\}/gi, senderName || '$1')
-      .replace(/\{\{\s*sender_name\s*\}\}/gi, senderName || 'Your Name')
-      .replace(/\{\{\s*sender_email\s*(?:\|\||\|)\s*(?:"|'|)(.*?)(?:"|'|)\s*\}\}/gi, senderEmail || '$1')
-      .replace(/\{\{\s*sender_email\s*\}\}/gi, senderEmail || 'your-email@gmail.com');
+  // Add Manual Contact
+  const handleAddManualContact = (e) => {
+    e.preventDefault();
+    if (!newContact.email || !newContact.email.includes('@')) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    setHrList([
+      ...hrList,
+      {
+        id: `manual-${Date.now()}`,
+        name: newContact.name.trim() || 'Hiring Manager',
+        email: newContact.email.trim(),
+        company: newContact.company.trim() || 'Company',
+        role: newContact.role.trim() || 'Software Engineer'
+      }
+    ]);
+
+    setNewContact({ name: '', email: '', company: '', role: '' });
+    setShowAddContact(false);
+    showToast('Contact added!');
   };
 
-  // Execute Dispatch
+  // Remove single contact
+  const handleRemoveContact = (id) => {
+    setHrList(hrList.filter(c => c.id !== id));
+  };
+
+  // Select Built-in Template
+  const handleSelectTemplate = (tpl) => {
+    setSelectedTemplateId(tpl.id);
+    setSubject(tpl.subject);
+    setBody(tpl.body);
+  };
+
+  // Fetch History
+  const handleOpenHistory = async () => {
+    setShowHistoryModal(true);
+    try {
+      const res = await fetch('/api/campaigns');
+      const data = await res.json();
+      setHistoryCampaigns(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Delete History Item
+  const handleDeleteHistory = async (id) => {
+    try {
+      await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
+      setHistoryCampaigns(historyCampaigns.filter(c => c.id !== id));
+      showToast('Campaign record removed.');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Dispatch Campaign
   const handleStartDispatch = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setResults(null);
 
     if (provider === 'gmail' && (!senderEmail.trim() || !appPassword.trim())) {
-      setErrorMsg('Please enter your Gmail address and 16-character Google App Password.');
-      return;
-    }
-
-    if (provider === 'resend' && !resendApiKey.trim()) {
-      setErrorMsg('Please enter your Resend API Key (get one free at resend.com).');
+      setErrorMsg('Please enter your Gmail and 16-character Google App Password.');
       return;
     }
 
     if (provider === 'brevo' && !brevoApiKey.trim()) {
-      setErrorMsg('Please enter your Brevo API Key (get one free at brevo.com).');
+      setErrorMsg('Please enter your Brevo API Key.');
       return;
     }
 
     if (hrList.length === 0) {
-      setErrorMsg('Please upload or provide HR contacts.');
+      setErrorMsg('Please provide at least one HR contact email address.');
       return;
     }
 
     if (!resumeFile) {
-      if (!confirm('You have not attached a resume PDF. Do you want to continue sending without an attachment?')) {
+      if (!confirm('You have not attached a resume PDF. Do you wish to continue sending without an attachment?')) {
         return;
       }
     }
 
     setIsSending(true);
-    setProgressText(`Authenticating and dispatching personalized emails to ${hrList.length} HR contacts...`);
+    setProgressMsg(`Authenticating and dispatching personalized emails to ${hrList.length} contacts...`);
 
     try {
-      const response = await fetch('/api/send/direct', {
+      const response = await fetch('/api/send-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider,
-          apiKey: provider === 'resend' ? resendApiKey.trim() : (provider === 'brevo' ? brevoApiKey.trim() : ''),
           senderEmail: senderEmail.trim(),
           appPassword: appPassword.replace(/\s+/g, ''),
+          apiKey: provider === 'brevo' ? brevoApiKey.trim() : '',
           senderName: senderName.trim(),
           recipients: hrList,
           subject: subject.trim(),
@@ -275,173 +366,168 @@ export default function App() {
         })
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (e) {
-        data = { error: 'Server returned an unparseable response' };
-      }
-
+      const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Dispatch failed');
       }
 
       setResults(data);
+
       if (data.sent > 0) {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-        showToast(`Campaign Complete! Sent: ${data.sent}, Skipped: ${data.skipped || 0}, Failed: ${data.failed || 0}`);
+        showToast(`🎉 Campaign Complete! Sent: ${data.sent}, Skipped: ${data.skipped || 0}, Failed: ${data.failed || 0}`);
       } else {
-        showToast(`Dispatch finished: ${data.sent || 0} sent, ${data.skipped || 0} skipped, ${data.failed || 0} failed.`);
+        showToast(`Finished: ${data.sent} sent, ${data.skipped} skipped, ${data.failed} failed.`);
         if (data.failed > 0) {
           const firstErr = data.results?.find(r => r.status === 'failed')?.error;
           setErrorMsg(`Failed: ${firstErr || 'Check results below'}`);
-        } else if (data.skipped > 0 && data.sent === 0) {
-          setErrorMsg('All contacts were skipped because duplicate protection is enabled and they were contacted in a previous session.');
         }
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Dispatch failed. Check your Gmail credentials.');
+      setErrorMsg(err.message || 'Dispatch failed.');
     } finally {
       setIsSending(false);
-      setProgressText('');
+      setProgressMsg('');
     }
   };
 
   const currentPreviewContact = hrList[previewIndex] || {};
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#f8fafc', padding: '28px 16px', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: '880px', margin: '0 auto' }}>
-        
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)',
-            marginBottom: '12px'
-          }}>
-            <Send size={24} color="#fff" style={{ transform: 'rotate(-20deg)' }} />
+    <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#f8fafc', padding: '28px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+
+        {/* Top Navigation Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)'
+            }}>
+              <Send size={20} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #fff, #cbd5e1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                HR Email & Resume Automation
+              </h1>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>
+                High-deliverability cold email studio for internships & full-time roles
+              </p>
+            </div>
           </div>
-          <h1 style={{ fontSize: '1.9rem', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
-            HR Email & Resume Automation
-          </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.92rem', margin: 0 }}>
-            Upload your HR spreadsheet &bull; Auto-alters company and recruiter names &bull; Attaches your resume &bull; Dispatches safely
-          </p>
+
+          <button
+            type="button"
+            onClick={handleOpenHistory}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              color: '#cbd5e1',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <History size={15} /> Campaign Logs
+          </button>
         </div>
 
-        {/* Toast Alert */}
+        {/* Global Toast Alert */}
         {toastMsg && (
           <div style={{
-            background: '#10b981',
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: 'rgba(15, 23, 42, 0.95)',
+            border: '1px solid #6366f1',
+            borderRadius: '10px',
+            padding: '12px 18px',
             color: '#fff',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            marginBottom: '20px',
+            fontSize: '0.9rem',
             fontWeight: 600,
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+            zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
-            animation: 'scaleUp 0.2s'
+            gap: '8px'
           }}>
-            <CheckCircle2 size={18} />
-            <span>{toastMsg}</span>
+            <Sparkles size={16} color="#818cf8" />
+            {toastMsg}
           </div>
         )}
 
-        {/* Error Notification */}
+        {/* Error Banner */}
         {errorMsg && (
           <div style={{
-            background: 'rgba(244, 63, 94, 0.15)',
-            border: '1px solid rgba(244, 63, 94, 0.4)',
-            color: '#fb7185',
-            padding: '14px 18px',
-            borderRadius: '8px',
+            background: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
+            borderRadius: '10px',
+            padding: '12px 16px',
             marginBottom: '20px',
-            fontSize: '0.9rem',
-            lineHeight: '1.5',
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
-            gap: '10px'
+            gap: '12px',
+            color: '#fca5a5',
+            fontSize: '0.88rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-              <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
               <div>{errorMsg}</div>
             </div>
             <button
-              type="button"
               onClick={() => setErrorMsg('')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#fb7185',
-                cursor: 'pointer',
-                fontSize: '1.1rem',
-                fontWeight: 700,
-                padding: '0 4px',
-                lineHeight: 1
-              }}
-              title="Dismiss"
+              style={{ background: 'transparent', border: 'none', color: '#fca5a5', cursor: 'pointer', padding: 0 }}
             >
-              ✕
+              <X size={16} />
             </button>
           </div>
         )}
 
         <form onSubmit={handleStartDispatch} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* STEP 1: Your Email Dispatch Provider */}
+
+          {/* STEP 1: Sender Credentials & Provider */}
           <div style={{
-            background: '#111622',
+            background: 'rgba(15, 23, 42, 0.65)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+            borderRadius: '16px',
+            padding: '22px',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
                   background: '#6366f1',
                   color: '#fff',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700
-                }}>1</span>
-                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Select Dispatch Method & Sender Credentials</h3>
+                  fontWeight: 700,
+                  fontSize: '0.85rem'
+                }}>1</div>
+                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#f8fafc' }}>
+                  Select Dispatch Method & Sender Credentials
+                </span>
               </div>
 
               {/* Provider Selection Tabs */}
-              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', padding: '3px', borderRadius: '8px', gap: '4px' }}>
-                <button
-                  type="button"
-                  onClick={() => { setProvider('resend'); localStorage.setItem('pm_provider', 'resend'); }}
-                  style={{
-                    background: provider === 'resend' ? '#6366f1' : 'transparent',
-                    color: provider === 'resend' ? '#fff' : '#94a3b8',
-                    border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  ⚡ Resend API (Cloud / Free Tier)
-                </button>
+              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <button
                   type="button"
                   onClick={() => { setProvider('gmail'); localStorage.setItem('pm_provider', 'gmail'); }}
@@ -449,15 +535,18 @@ export default function App() {
                     background: provider === 'gmail' ? '#6366f1' : 'transparent',
                     color: provider === 'gmail' ? '#fff' : '#94a3b8',
                     border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '0.78rem',
+                    borderRadius: '7px',
+                    padding: '6px 14px',
+                    fontSize: '0.82rem',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  ✉️ Gmail App Password (Localhost)
+                  <Mail size={14} /> Gmail App Password (Localhost)
                 </button>
                 <button
                   type="button"
@@ -466,108 +555,31 @@ export default function App() {
                     background: provider === 'brevo' ? '#6366f1' : 'transparent',
                     color: provider === 'brevo' ? '#fff' : '#94a3b8',
                     border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '0.78rem',
+                    borderRadius: '7px',
+                    padding: '6px 14px',
+                    fontSize: '0.82rem',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  🚀 Brevo API
+                  🚀 Brevo API (Cloud / Free Tier)
                 </button>
               </div>
             </div>
 
-            {/* Provider 1: RESEND (Cloud HTTPS) */}
-            {provider === 'resend' && (
-              <div>
-                <div style={{
-                  background: 'rgba(99, 102, 241, 0.08)',
-                  border: '1px solid rgba(99, 102, 241, 0.25)',
-                  borderRadius: '8px',
-                  padding: '10px 14px',
-                  marginBottom: '14px',
-                  fontSize: '0.82rem',
-                  color: '#cbd5e1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '8px'
-                }}>
-                  <div>
-                    <strong style={{ color: '#818cf8' }}>⚡ Cloud-Compatible (HTTPS):</strong> 3,000 free emails/month. Works on Render, Railway, and localhost with zero port blocks.
-                  </div>
-                  <a
-                    href="https://resend.com/signup"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      color: '#38bdf8',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    Get Free Resend API Key <ExternalLink size={12} />
-                  </a>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                      Resend API Key (starts with <code>re_...</code>)
-                    </label>
-                    <input
-                      type="password"
-                      className="form-input"
-                      placeholder="re_xxxxxxxxxxxxxxxx"
-                      value={resendApiKey}
-                      onChange={(e) => { setResendApiKey(e.target.value); localStorage.setItem('pm_resend_key', e.target.value); }}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                      Your Contact / Reply-To Email
-                    </label>
-                    <input
-                      type="email"
-                      className="form-input"
-                      placeholder="your.email@gmail.com"
-                      value={senderEmail}
-                      onChange={(e) => handleEmailChange(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                      Your Full Name
-                    </label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. Neelesh Tripathi"
-                      value={senderName}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Provider 2: GMAIL APP PASSWORD (SMTP) */}
+            {/* Provider 1: GMAIL APP PASSWORD */}
             {provider === 'gmail' && (
               <div>
                 <div style={{
-                  background: 'rgba(234, 179, 8, 0.08)',
-                  border: '1px solid rgba(234, 179, 8, 0.25)',
-                  borderRadius: '8px',
-                  padding: '10px 14px',
-                  marginBottom: '14px',
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  marginBottom: '16px',
                   fontSize: '0.82rem',
                   color: '#cbd5e1',
                   display: 'flex',
@@ -577,103 +589,134 @@ export default function App() {
                   gap: '8px'
                 }}>
                   <div>
-                    <strong style={{ color: '#facc15' }}>⚠️ Note for Cloud Hosts:</strong> Gmail SMTP (port 587) works on localhost, but free cloud hosts (Render/Railway trial) block raw SMTP sockets.
+                    <strong style={{ color: '#818cf8' }}>✉️ Gmail SMTP Transporter:</strong> Highest deliverability for cold email applications. Dispatches directly from your personal Gmail address.
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowPasswordGuide(!showPasswordGuide)}
                     style={{
-                      background: 'transparent',
+                      background: 'none',
                       border: 'none',
                       color: '#38bdf8',
-                      fontSize: '0.8rem',
                       cursor: 'pointer',
-                      display: 'flex',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
+                      padding: 0
                     }}
                   >
-                    <HelpCircle size={13} />
-                    <span>{showPasswordGuide ? 'Close Guide' : 'How to get App Password?'}</span>
+                    <HelpCircle size={14} /> How to get 16-letter App Password?
                   </button>
                 </div>
 
-                {/* Guide Accordion */}
+                {/* Password Guide Box */}
                 {showPasswordGuide && (
                   <div style={{
-                    background: 'rgba(99, 102, 241, 0.08)',
-                    border: '1px solid rgba(99, 102, 241, 0.25)',
-                    borderRadius: '8px',
-                    padding: '12px 16px',
-                    marginBottom: '14px',
-                    fontSize: '0.82rem',
-                    lineHeight: '1.5',
-                    color: '#cbd5e1'
+                    background: 'rgba(15, 23, 42, 0.9)',
+                    border: '1px solid #38bdf8',
+                    borderRadius: '10px',
+                    padding: '14px 18px',
+                    marginBottom: '16px',
+                    fontSize: '0.83rem',
+                    lineHeight: 1.6,
+                    color: '#e2e8f0'
                   }}>
-                    <strong>How to generate 16-letter App Password in 30 seconds:</strong>
-                    <ol style={{ paddingLeft: '18px', marginTop: '6px' }}>
-                      <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>myaccount.google.com/apppasswords <ExternalLink size={11} style={{ display: 'inline' }} /></a></li>
-                      <li>Ensure <strong>2-Step Verification</strong> is enabled.</li>
-                      <li>Type name <code>HREmailBot</code> and click <strong>Create</strong>.</li>
-                      <li>Paste the 16-character code below.</li>
+                    <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '8px' }}>
+                      3-Step Setup for Google App Password:
+                    </div>
+                    <ol style={{ margin: 0, paddingLeft: '20px' }}>
+                      <li>Ensure <strong>2-Step Verification</strong> is ON in your Google Account.</li>
+                      <li>
+                        Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>myaccount.google.com/apppasswords</a>.
+                      </li>
+                      <li>Type <code>HR Email App</code> and click <strong>Create</strong>. Copy the 16-letter code and paste it below.</li>
                     </ol>
                   </div>
                 )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                       Your Gmail Address
                     </label>
                     <input
                       type="email"
-                      className="form-input"
                       placeholder="your.email@gmail.com"
                       value={senderEmail}
                       onChange={(e) => handleEmailChange(e.target.value)}
                       required
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
-                      Google App Password
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
+                      16-Letter App Password
                     </label>
                     <input
                       type="password"
-                      className="form-input"
                       placeholder="xxxx xxxx xxxx xxxx"
                       value={appPassword}
-                      onChange={(e) => handlePwdChange(e.target.value)}
+                      onChange={(e) => handlePasswordChange(e.target.value)}
                       required
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                       Your Full Name
                     </label>
                     <input
                       type="text"
-                      className="form-input"
                       placeholder="e.g. Neelesh Tripathi"
                       value={senderName}
                       onChange={(e) => handleNameChange(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Provider 3: BREVO (Cloud HTTPS) */}
+            {/* Provider 2: BREVO API */}
             {provider === 'brevo' && (
               <div>
                 <div style={{
                   background: 'rgba(99, 102, 241, 0.08)',
-                  border: '1px solid rgba(99, 102, 241, 0.25)',
-                  borderRadius: '8px',
-                  padding: '10px 14px',
-                  marginBottom: '14px',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  marginBottom: '16px',
                   fontSize: '0.82rem',
                   color: '#cbd5e1',
                   display: 'flex',
@@ -683,7 +726,7 @@ export default function App() {
                   gap: '8px'
                 }}>
                   <div>
-                    <strong style={{ color: '#818cf8' }}>🚀 Brevo HTTPS REST API:</strong> 300 free emails/day. Bypasses cloud port blocks over HTTPS.
+                    <strong style={{ color: '#818cf8' }}>🚀 Brevo HTTPS REST API:</strong> 300 free emails/day. Dispatches over Port 443 HTTPS without port blocks on cloud hosts.
                   </div>
                   <a
                     href="https://app.brevo.com/settings/keys/api"
@@ -698,411 +741,658 @@ export default function App() {
                       gap: '4px'
                     }}
                   >
-                    Get Brevo API Key <ExternalLink size={12} />
+                    Get Free Brevo Key <ExternalLink size={12} />
                   </a>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                       Brevo API Key (starts with <code>xkeysib-...</code>)
                     </label>
                     <input
                       type="password"
-                      className="form-input"
                       placeholder="xkeysib-xxxxxxxxxxxxxxxx"
                       value={brevoApiKey}
                       onChange={(e) => { setBrevoApiKey(e.target.value); localStorage.setItem('pm_brevo_key', e.target.value); }}
                       required
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
+
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                       Verified Brevo Sender Email
                     </label>
                     <input
                       type="email"
-                      className="form-input"
-                      placeholder="your.email@domain.com"
+                      placeholder="your.email@gmail.com"
                       value={senderEmail}
                       onChange={(e) => handleEmailChange(e.target.value)}
                       required
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
+
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '6px' }}>
                       Your Full Name
                     </label>
                     <input
                       type="text"
-                      className="form-input"
                       placeholder="e.g. Neelesh Tripathi"
                       value={senderName}
                       onChange={(e) => handleNameChange(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
                 </div>
               </div>
             )}
+
+            {/* Test Connection Button & Indicator */}
+            <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={handleTestCredentials}
+                disabled={isVerifying || !senderEmail || (provider === 'gmail' ? !appPassword : !brevoApiKey)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '8px',
+                  padding: '7px 14px',
+                  color: '#e2e8f0',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: isVerifying ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isVerifying ? <RefreshCw size={14} className="spin" /> : <ShieldCheck size={14} color="#818cf8" />}
+                {isVerifying ? 'Verifying...' : 'Test Connection'}
+              </button>
+
+              {verifyStatus && (
+                <div style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: verifyStatus.success ? '#4ade80' : '#f87171',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  {verifyStatus.success ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+                  {verifyStatus.message}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* STEP 2: HR Contacts Sheet Upload & Grid */}
+          {/* STEP 2: HR Contacts Spreadsheet */}
           <div style={{
-            background: '#111622',
+            background: 'rgba(15, 23, 42, 0.65)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+            borderRadius: '16px',
+            padding: '22px',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
                   background: '#6366f1',
                   color: '#fff',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700
-                }}>2</span>
-                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>HR Contacts List (.xlsx / .csv)</h3>
-                <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
-                  {hrList.length} Contacts
+                  fontWeight: 700,
+                  fontSize: '0.85rem'
+                }}>2</div>
+                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#f8fafc' }}>
+                  HR Contacts List (.xlsx / .csv)
+                </span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '20px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  color: '#34d399',
+                  border: '1px solid rgba(16, 185, 129, 0.3)'
+                }}>
+                  {hrList.length} CONTACTS
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
-                  className="btn btn-outline btn-sm"
-                  onClick={handleDownloadSampleSheet}
-                  title="Download sample HR contacts format"
+                  onClick={handleDownloadSample}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    color: '#94a3b8',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
                 >
-                  <Download size={13} />
-                  <span>Sample Excel/CSV</span>
+                  <Download size={13} /> Sample Excel/CSV
+                </button>
+
+                <input
+                  type="file"
+                  ref={sheetInputRef}
+                  onChange={handleSheetUpload}
+                  accept=".xlsx, .xls, .csv"
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => sheetInputRef.current?.click()}
+                  disabled={isUploadingSheet}
+                  style={{
+                    background: 'rgba(99, 102, 241, 0.15)',
+                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    color: '#818cf8',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Upload size={14} /> {isUploadingSheet ? 'Parsing...' : 'Upload HR Sheet'}
                 </button>
               </div>
             </div>
 
-            {/* Upload Box */}
-            <input
-              type="file"
-              ref={sheetInputRef}
-              onChange={handleSheetUpload}
-              accept=".xlsx,.xls,.csv"
-              style={{ display: 'none' }}
-            />
-
-            <div
-              onClick={() => sheetInputRef.current && sheetInputRef.current.click()}
-              style={{
-                border: '1.5px dashed rgba(99, 102, 241, 0.3)',
-                borderRadius: '8px',
-                padding: '16px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: '#0e131d',
-                marginBottom: '14px',
-                transition: 'all 0.2s'
-              }}
-            >
-              {isUploadingSheet ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#94a3b8' }}>
-                  <Loader2 size={16} className="pulse-animation" />
-                  <span>Reading and mapping HR spreadsheet...</span>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#94a3b8', fontSize: '0.86rem' }}>
-                  <FileSpreadsheet size={20} color="#818cf8" />
-                  <span>{sheetFileName ? `Loaded: ${sheetFileName} (${hrList.length} contacts)` : 'Click or drop your HR Excel (.xlsx) or CSV file here'}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Contacts Table */}
-            {hrList.length > 0 && (
+            {sheetFileName && (
               <div style={{
-                maxHeight: '160px',
-                overflowY: 'auto',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'rgba(99, 102, 241, 0.08)',
+                border: '1px dashed rgba(99, 102, 241, 0.3)',
                 borderRadius: '8px',
-                background: '#0a0d14'
+                padding: '8px 12px',
+                marginBottom: '12px',
+                fontSize: '0.82rem',
+                color: '#cbd5e1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8', textAlign: 'left', background: 'rgba(255,255,255,0.02)' }}>
-                      <th style={{ padding: '8px 12px' }}>HR Name</th>
-                      <th style={{ padding: '8px 12px' }}>Company</th>
-                      <th style={{ padding: '8px 12px' }}>HR Email</th>
-                      <th style={{ padding: '8px 12px' }}>Target Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {hrList.map((c, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                        <td style={{ padding: '7px 12px', fontWeight: 600 }}>{c.name || '—'}</td>
-                        <td style={{ padding: '7px 12px', color: '#818cf8', fontWeight: 600 }}>{c.company || '—'}</td>
-                        <td style={{ padding: '7px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>{c.email}</td>
-                        <td style={{ padding: '7px 12px', color: '#94a3b8' }}>{c.role || 'Software Engineer'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <span>Loaded Spreadsheet: <strong>{sheetFileName}</strong> ({hrList.length} contacts)</span>
+                <button
+                  type="button"
+                  onClick={() => { setSheetFileName(''); setHrList([]); }}
+                  style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.75rem' }}
+                >
+                  Clear Sheet
+                </button>
               </div>
             )}
 
-            {/* Duplicate Protection Checkbox */}
-            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#94a3b8' }}>
-              <input
-                type="checkbox"
-                id="skipDup"
-                checked={skipDuplicates}
-                onChange={(e) => setSkipDuplicates(e.target.checked)}
-                style={{ accentColor: '#6366f1', cursor: 'pointer' }}
-              />
-              <label htmlFor="skipDup" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Shield size={14} color="#10b981" />
-                <span><strong>Duplicate Protection:</strong> Automatically skip any HR contact already emailed in past campaigns</span>
-              </label>
+            {/* Contacts Table */}
+            <div style={{
+              maxHeight: '220px',
+              overflowY: 'auto',
+              background: 'rgba(0, 0, 0, 0.25)',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.06)'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255, 255, 255, 0.03)', color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                    <th style={{ padding: '8px 12px' }}>HR Name</th>
+                    <th style={{ padding: '8px 12px' }}>Company</th>
+                    <th style={{ padding: '8px 12px' }}>HR Email</th>
+                    <th style={{ padding: '8px 12px' }}>Target Role</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', width: '40px' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hrList.map((contact, idx) => (
+                    <tr key={contact.id || idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                      <td style={{ padding: '8px 12px', fontWeight: 600, color: '#f1f5f9' }}>{contact.name || '—'}</td>
+                      <td style={{ padding: '8px 12px', color: '#cbd5e1' }}>{contact.company || '—'}</td>
+                      <td style={{ padding: '8px 12px', color: '#818cf8', fontFamily: 'monospace' }}>{contact.email}</td>
+                      <td style={{ padding: '8px 12px', color: '#94a3b8' }}>{contact.role || 'Software Engineer'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveContact(contact.id)}
+                          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                          title="Remove contact"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
+            {/* Bottom Controls of Step 2 */}
+            <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="skipDuplicates"
+                  checked={skipDuplicates}
+                  onChange={(e) => setSkipDuplicates(e.target.checked)}
+                  style={{ cursor: 'pointer', accentColor: '#6366f1' }}
+                />
+                <label htmlFor="skipDuplicates" style={{ fontSize: '0.82rem', color: '#94a3b8', cursor: 'pointer' }}>
+                  <span style={{ color: '#10b981' }}>🛡️ Duplicate Protection:</span> Skip contacts already emailed in past campaigns
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAddContact(!showAddContact)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#38bdf8',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: 0
+                }}
+              >
+                <Plus size={14} /> Add Individual Contact
+              </button>
+            </div>
+
+            {/* Add Individual Contact Sub-form */}
+            {showAddContact && (
+              <div style={{
+                marginTop: '12px',
+                padding: '12px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1.2fr 1fr auto',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <input
+                  type="text"
+                  placeholder="HR Name"
+                  value={newContact.name}
+                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  style={{ padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+                />
+                <input
+                  type="text"
+                  placeholder="Company"
+                  value={newContact.company}
+                  onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
+                  style={{ padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+                />
+                <input
+                  type="email"
+                  placeholder="hr.email@company.com"
+                  value={newContact.email}
+                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                  style={{ padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+                />
+                <input
+                  type="text"
+                  placeholder="Target Role"
+                  value={newContact.role}
+                  onChange={(e) => setNewContact({ ...newContact, role: e.target.value })}
+                  style={{ padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff', fontSize: '0.8rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddManualContact}
+                  style={{
+                    padding: '7px 14px',
+                    background: '#6366f1',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* STEP 3: Resume PDF & Email Template */}
+          {/* STEP 3: Resume Attachment & Cold Email Template */}
           <div style={{
-            background: '#111622',
+            background: 'rgba(15, 23, 42, 0.65)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+            borderRadius: '16px',
+            padding: '22px',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
                   background: '#6366f1',
                   color: '#fff',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700
-                }}>3</span>
-                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Resume Attachment & Email Template</h3>
+                  fontWeight: 700,
+                  fontSize: '0.85rem'
+                }}>3</div>
+                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#f8fafc' }}>
+                  Resume Attachment & Email Template
+                </span>
               </div>
 
-              {/* Template selection buttons */}
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {DEFAULT_TEMPLATES.map((t) => (
+              {/* Template Quick Select Tabs */}
+              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', padding: '3px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                {DEFAULT_TEMPLATES.map((tpl) => (
                   <button
-                    key={t.id}
+                    key={tpl.id}
                     type="button"
-                    className={`btn btn-sm ${selectedTemplateId === t.id ? 'btn-primary' : 'btn-outline'}`}
-                    onClick={() => handleSelectTemplate(t.id)}
-                    style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                    onClick={() => handleSelectTemplate(tpl)}
+                    style={{
+                      background: selectedTemplateId === tpl.id ? '#6366f1' : 'transparent',
+                      color: selectedTemplateId === tpl.id ? '#fff' : '#94a3b8',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '5px 10px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
                   >
-                    {t.name.split(' ')[0]} {t.name.split(' ')[1]}
+                    {tpl.name.split(' ')[0]}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Resume Upload Box */}
+            {/* Resume Upload Pill */}
             <div style={{ marginBottom: '16px' }}>
               <input
                 type="file"
                 ref={resumeInputRef}
                 onChange={handleResumeUpload}
-                accept=".pdf,.doc,.docx"
+                accept=".pdf, .docx"
                 style={{ display: 'none' }}
               />
 
               {resumeFile ? (
                 <div style={{
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  padding: '10px 16px',
-                  borderRadius: '8px'
+                  justifyContent: 'space-between'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FileText size={18} color="#10b981" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <FileText size={18} color="#34d399" />
                     <div>
                       <span style={{ fontWeight: 600, color: '#34d399', fontSize: '0.88rem' }}>
                         {resumeFile.originalname || resumeFile.filename}
                       </span>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '8px' }}>
-                        ({(resumeFile.size / 1024).toFixed(1)} KB) &bull; Attached to every HR email
+                      <span style={{ fontSize: '0.78rem', color: '#94a3b8', marginLeft: '8px' }}>
+                        ({(resumeFile.size / 1024).toFixed(1)} KB) • Attached to every HR email
                       </span>
                     </div>
                   </div>
-
                   <button
                     type="button"
                     onClick={() => setResumeFile(null)}
-                    style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer', padding: '4px' }}
+                    style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}
+                    title="Remove attached resume"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               ) : (
-                <div
-                  onClick={() => resumeInputRef.current && resumeInputRef.current.click()}
+                <button
+                  type="button"
+                  onClick={() => resumeInputRef.current?.click()}
+                  disabled={isUploadingResume}
                   style={{
-                    border: '1.5px dashed rgba(255, 255, 255, 0.15)',
-                    borderRadius: '8px',
-                    padding: '14px',
-                    textAlign: 'center',
+                    width: '100%',
+                    padding: '12px',
+                    background: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px dashed rgba(99, 102, 241, 0.35)',
+                    borderRadius: '10px',
+                    color: '#818cf8',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    background: '#0e131d'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
                   }}
                 >
-                  {isUploadingResume ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#94a3b8' }}>
-                      <Loader2 size={16} className="pulse-animation" />
-                      <span>Uploading Resume PDF...</span>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#f8fafc', fontSize: '0.86rem' }}>
-                      <Paperclip size={18} color="#818cf8" />
-                      <span><strong>Click to attach your Resume (PDF / Word)</strong></span>
-                    </div>
-                  )}
-                </div>
+                  <Upload size={16} /> {isUploadingResume ? 'Uploading Resume...' : 'Attach Resume (PDF / DOCX)'}
+                </button>
               )}
             </div>
 
-            {/* Dynamic Tags Notice */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '10px',
-              fontSize: '0.78rem',
-              color: '#94a3b8'
-            }}>
-              <span>Dynamic Tags: <code style={{ color: '#818cf8' }}>{`{{company}}`}</code> &bull; <code style={{ color: '#818cf8' }}>{`{{name}}`}</code> &bull; <code style={{ color: '#818cf8' }}>{`{{role}}`}</code></span>
-              
+            {/* Dynamic Tags Helper & Live Preview Trigger */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span>Dynamic Tags:</span>
+                <code style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '2px 6px', borderRadius: '4px' }}>{`{{company}}`}</code>
+                <code style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '2px 6px', borderRadius: '4px' }}>{`{{name}}`}</code>
+                <code style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '2px 6px', borderRadius: '4px' }}>{`{{role}}`}</code>
+              </div>
+
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
                 onClick={() => setShowPreviewModal(true)}
-                style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#38bdf8',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: 0
+                }}
               >
-                <Eye size={12} />
-                <span>Live Per-Company Preview</span>
+                <Eye size={14} /> Live Per-Company Preview
               </button>
             </div>
 
-            {/* Subject Input */}
+            {/* Subject Line */}
             <div style={{ marginBottom: '12px' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
                 Subject Line
               </label>
               <input
                 type="text"
-                className="form-input"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 required
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'rgba(0, 0, 0, 0.35)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.88rem',
+                  boxSizing: 'border-box'
+                }}
               />
             </div>
 
-            {/* Body Input */}
+            {/* Email Body */}
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '4px' }}>
                 Email Body Message
               </label>
               <textarea
-                className="form-textarea"
-                rows={8}
+                rows={9}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 required
-                style={{ fontSize: '0.88rem' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'rgba(0, 0, 0, 0.35)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.88rem',
+                  lineHeight: 1.6,
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                  resize: 'vertical'
+                }}
               />
             </div>
           </div>
 
-          {/* STEP 4: Send Button */}
-          <div>
+          {/* STEP 4: Launch Campaign Button */}
+          <div style={{ textAlign: 'center', marginTop: '6px' }}>
             <button
               type="submit"
               disabled={isSending || hrList.length === 0}
-              className="btn btn-primary btn-lg"
               style={{
                 width: '100%',
                 padding: '16px',
+                background: isSending ? '#475569' : 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '14px',
                 fontSize: '1.05rem',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                boxShadow: '0 8px 25px rgba(99, 102, 241, 0.4)',
-                cursor: isSending ? 'not-allowed' : 'pointer'
+                fontWeight: 700,
+                cursor: isSending ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: isSending ? 'none' : '0 8px 30px rgba(99, 102, 241, 0.35)',
+                transition: 'all 0.2s ease'
               }}
             >
-              {isSending ? (
-                <>
-                  <Loader2 size={20} className="pulse-animation" />
-                  <span>{progressText || 'Sending Emails...'}</span>
-                </>
-              ) : (
-                <>
-                  <Send size={20} />
-                  <span>Send Resume to {hrList.length} HR Recruiter{hrList.length === 1 ? '' : 's'}</span>
-                </>
-              )}
+              <Send size={20} />
+              {isSending ? (progressMsg || 'Dispatching Personalized Emails...') : `Send Resume to ${hrList.length} HR Recruiters`}
             </button>
           </div>
         </form>
 
-        {/* Results & Audit Log Table */}
+        {/* Real-time Dispatch Results Audit Log */}
         {results && (
           <div style={{
             marginTop: '28px',
-            background: '#111622',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            padding: '20px'
+            background: 'rgba(15, 23, 42, 0.8)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '16px',
+            padding: '22px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle2 size={18} color="#10b981" />
-                <span>Campaign Delivery Audit Log</span>
-              </h3>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <span className="badge badge-success">Sent: {results.sent}</span>
-                {results.skipped > 0 && <span className="badge badge-warning">Skipped Duplicates: {results.skipped}</span>}
-                {results.failed > 0 && <span className="badge badge-danger">Failed: {results.failed}</span>}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '1rem', color: '#f8fafc' }}>
+                <CheckCircle2 size={18} color="#34d399" />
+                Campaign Delivery Audit Log
+              </div>
+              <div style={{ display: 'flex', gap: '8px', fontSize: '0.78rem', fontWeight: 700 }}>
+                <span style={{ padding: '3px 8px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
+                  SENT: {results.sent}
+                </span>
+                <span style={{ padding: '3px 8px', borderRadius: '6px', background: 'rgba(234, 179, 8, 0.2)', color: '#facc15' }}>
+                  SKIPPED: {results.skipped}
+                </span>
+                <span style={{ padding: '3px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
+                  FAILED: {results.failed}
+                </span>
               </div>
             </div>
 
-            <div style={{ maxHeight: '220px', overflowY: 'auto', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '8px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8', textAlign: 'left', background: 'rgba(255,255,255,0.02)' }}>
-                    <th style={{ padding: '8px 12px' }}>Company</th>
-                    <th style={{ padding: '8px 12px' }}>HR Contact</th>
-                    <th style={{ padding: '8px 12px' }}>Email</th>
-                    <th style={{ padding: '8px 12px' }}>Status</th>
+                  <tr style={{ color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                    <th style={{ padding: '8px 10px' }}>Company</th>
+                    <th style={{ padding: '8px 10px' }}>HR Contact</th>
+                    <th style={{ padding: '8px 10px' }}>Email</th>
+                    <th style={{ padding: '8px 10px' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {results.results?.map((r, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                      <td style={{ padding: '7px 12px', fontWeight: 600, color: '#818cf8' }}>{r.company || '—'}</td>
-                      <td style={{ padding: '7px 12px' }}>{r.name || '—'}</td>
-                      <td style={{ padding: '7px 12px', fontFamily: 'monospace', color: '#cbd5e1' }}>{r.email}</td>
-                      <td style={{ padding: '7px 12px' }}>
-                        {r.status === 'sent' && <span style={{ color: '#10b981', fontWeight: 600 }}>✔ Sent</span>}
-                        {r.status === 'skipped' && <span style={{ color: '#fbbf24', fontWeight: 600 }}>⏭ Skipped (Duplicate)</span>}
-                        {r.status === 'failed' && <span style={{ color: '#f43f5e', fontWeight: 600 }}>✗ {r.error}</span>}
+                  {results.results?.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                      <td style={{ padding: '8px 10px', color: '#cbd5e1' }}>{item.company || '—'}</td>
+                      <td style={{ padding: '8px 10px', fontWeight: 600, color: '#f1f5f9' }}>{item.name || '—'}</td>
+                      <td style={{ padding: '8px 10px', color: '#818cf8', fontFamily: 'monospace' }}>{item.email}</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        {item.status === 'sent' && (
+                          <span style={{ color: '#34d399', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <CheckCircle2 size={13} /> Delivered
+                          </span>
+                        )}
+                        {item.status === 'skipped' && (
+                          <span style={{ color: '#facc15', fontWeight: 600 }}>
+                            ⏭ Skipped (Duplicate)
+                          </span>
+                        )}
+                        {item.status === 'failed' && (
+                          <span style={{ color: '#f87171', fontWeight: 600 }} title={item.error}>
+                            ✗ {item.error || 'Failed'}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1112,92 +1402,174 @@ export default function App() {
           </div>
         )}
 
-        {/* Live Preview Modal */}
+        {/* LIVE PREVIEW MODAL */}
         {showPreviewModal && (
-          <div className="modal-overlay" onClick={() => setShowPreviewModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px' }}>
-              <div className="modal-header">
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Per-Company Dynamic Preview</h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>
-                    See how your email dynamically changes for each company in your list
-                  </p>
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              background: '#0f172a',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '16px',
+              maxWidth: '650px',
+              width: '100%',
+              padding: '24px',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff' }}>
+                  Live Personalized Preview ({previewIndex + 1} of {hrList.length})
                 </div>
-                <button className="btn-close" onClick={() => setShowPreviewModal(false)}>✕</button>
+                <button
+                  type="button"
+                  onClick={() => setShowPreviewModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                >
+                  <X size={20} />
+                </button>
               </div>
 
-              <div className="modal-body">
-                {/* Carousel Bar */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: '#0e131d',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  marginBottom: '16px'
-                }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    disabled={previewIndex === 0}
-                    onClick={() => setPreviewIndex(prev => prev - 1)}
-                  >
-                    <ChevronLeft size={14} />
-                    <span>Prev Company</span>
-                  </button>
-
-                  <div style={{ textAlign: 'center' }}>
-                    <strong style={{ color: '#818cf8', fontSize: '0.92rem' }}>
-                      {currentPreviewContact.company || 'Company'} &bull; {currentPreviewContact.name || 'HR Recruiter'}
-                    </strong>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                      Contact #{previewIndex + 1} of {hrList.length} ({currentPreviewContact.email})
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    disabled={previewIndex === hrList.length - 1}
-                    onClick={() => setPreviewIndex(prev => prev + 1)}
-                  >
-                    <span>Next Company</span>
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-
-                {/* Rendered Email Box */}
-                <div style={{
-                  background: '#ffffff',
-                  color: '#1e293b',
-                  borderRadius: '8px',
-                  padding: '18px',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '12px', fontSize: '0.84rem' }}>
-                    <div style={{ color: '#64748b' }}><strong>To:</strong> {currentPreviewContact.email}</div>
-                    <div style={{ color: '#1e293b', marginTop: '4px' }}>
-                      <strong>Subject:</strong> {renderPersonalized(subject, currentPreviewContact)}
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: '0.88rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
-                    {renderPersonalized(body, currentPreviewContact)}
-                  </div>
-
-                  {resumeFile && (
-                    <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Paperclip size={13} color="#10b981" />
-                      <span>Attachment: <strong>{resumeFile.originalname || resumeFile.filename}</strong></span>
-                    </div>
-                  )}
-                </div>
+              {/* Slider between contacts */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', marginBottom: '14px' }}>
+                <button
+                  type="button"
+                  disabled={previewIndex === 0}
+                  onClick={() => setPreviewIndex(Math.max(0, previewIndex - 1))}
+                  style={{ background: 'none', border: 'none', color: previewIndex === 0 ? '#475569' : '#38bdf8', cursor: previewIndex === 0 ? 'default' : 'pointer', fontWeight: 600 }}
+                >
+                  &larr; Previous Recruiter
+                </button>
+                <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                  <strong>{currentPreviewContact.name || 'HR Contact'}</strong> at <strong>{currentPreviewContact.company || 'Company'}</strong>
+                </span>
+                <button
+                  type="button"
+                  disabled={previewIndex >= hrList.length - 1}
+                  onClick={() => setPreviewIndex(Math.min(hrList.length - 1, previewIndex + 1))}
+                  style={{ background: 'none', border: 'none', color: previewIndex >= hrList.length - 1 ? '#475569' : '#38bdf8', cursor: previewIndex >= hrList.length - 1 ? 'default' : 'pointer', fontWeight: 600 }}
+                >
+                  Next Recruiter &rarr;
+                </button>
               </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowPreviewModal(false)}>Close Preview</button>
+              {/* Rendered Box */}
+              <div style={{ background: '#fff', color: '#1e293b', borderRadius: '10px', padding: '18px', fontSize: '0.9rem' }}>
+                <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>To: {currentPreviewContact.email}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: '4px' }}>
+                    {subject
+                      .replace(/\{\{\s*role.*\}\}/gi, currentPreviewContact.role || 'Software Engineer')
+                      .replace(/\{\{\s*name.*\}\}/gi, currentPreviewContact.name || 'Hiring Team')
+                      .replace(/\{\{\s*company.*\}\}/gi, currentPreviewContact.company || 'your company')}
+                  </div>
+                </div>
+
+                <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: '0.88rem' }}>
+                  {body
+                    .replace(/\{\{\s*name.*\}\}/gi, currentPreviewContact.name || 'Hiring Team')
+                    .replace(/\{\{\s*company.*\}\}/gi, currentPreviewContact.company || 'your company')
+                    .replace(/\{\{\s*role.*\}\}/gi, currentPreviewContact.role || 'Software Engineer')
+                    .replace(/\{\{\s*sender_name.*\}\}/gi, senderName || 'Your Name')
+                    .replace(/\{\{\s*sender_email.*\}\}/gi, senderEmail || 'your-email@gmail.com')}
+                </div>
+
+                {resumeFile && (
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#059669' }}>
+                    <FileText size={16} /> Attached: <strong>{resumeFile.originalname || resumeFile.filename}</strong>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* CAMPAIGN HISTORY MODAL */}
+        {showHistoryModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              background: '#0f172a',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '16px',
+              maxWidth: '700px',
+              width: '100%',
+              padding: '24px',
+              maxHeight: '85vh',
+              overflowY: 'auto'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <History size={18} color="#818cf8" /> Past Campaign Logs
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowHistoryModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {historyCampaigns.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                  No past campaigns found.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {historyCampaigns.map((camp) => (
+                    <div key={camp.id} style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '10px',
+                      padding: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#f1f5f9', fontSize: '0.9rem' }}>
+                          {camp.name}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '4px' }}>
+                          Sender: <strong>{camp.senderEmail || camp.senderName}</strong> • {new Date(camp.createdAt).toLocaleString()}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '8px', fontSize: '0.75rem' }}>
+                          <span style={{ color: '#34d399', fontWeight: 600 }}>Sent: {camp.stats?.sent || 0}</span> •
+                          <span style={{ color: '#facc15', fontWeight: 600 }}>Skipped: {camp.stats?.skipped || 0}</span> •
+                          <span style={{ color: '#f87171', fontWeight: 600 }}>Failed: {camp.stats?.failed || 0}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteHistory(camp.id)}
+                        style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+                        title="Delete log"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
