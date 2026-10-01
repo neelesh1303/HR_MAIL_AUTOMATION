@@ -1,6 +1,100 @@
 {
   "campaigns": [
     {
+      "id": "camp-1790869168769",
+      "name": "HR Outreach - 1/10/2026 09:09 pm",
+      "subject": "Application for {{role || \"Software Engineer\"}} • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},\n\nI hope you are doing well.\n\nI am writing to express my strong interest in {{role || \"Software Engineer\"}} opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills, clean coding practices, and problem-solving background to your team.\n\nI have attached my updated resume for your review. I would welcome the opportunity to connect for a brief 10-minute chat regarding upcoming openings at {{company}}.\n\nThank you for your time and consideration!\n\nBest regards,\n{{sender_name || \"Your Name\"}}\n{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "ahujapa05@gmail.com",
+          "name": "Pratham",
+          "company": "",
+          "status": "sent",
+          "messageId": "<9b643dbc-1dfd-8d11-78c0-6e0c14deb90c@gmail.com>",
+          "sentAt": "2026-10-01T15:39:09.107Z"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<a2537254-c3c7-0723-65c5-959b5a133537@gmail.com>",
+          "sentAt": "2026-10-01T15:39:15.652Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<a6aafd83-75f3-200e-9452-b6a402232f4d@gmail.com>",
+          "sentAt": "2026-10-01T15:39:22.075Z"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "dummy",
+          "company": "",
+          "status": "sent",
+          "messageId": "<e10ed12e-2c96-fb84-4052-eca3315ebd05@gmail.com>",
+          "sentAt": "2026-10-01T15:39:28.769Z"
+        }
+      ],
+      "stats": {
+        "total": 4,
+        "sent": 4,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T15:39:28.769Z",
+      "completedAt": "2026-10-01T15:39:28.769Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790868921193",
+      "name": "HR Outreach - 1/10/2026 09:05 pm",
+      "subject": "Application for {{role || \"Software Engineer\"}} • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},\n\nI hope you are doing well.\n\nI am writing to express my strong interest in {{role || \"Software Engineer\"}} opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills, clean coding practices, and problem-solving background to your team.\n\nI have attached my updated resume for your review. I would welcome the opportunity to connect for a brief 10-minute chat regarding upcoming openings at {{company}}.\n\nThank you for your time and consideration!\n\nBest regards,\n{{sender_name || \"Your Name\"}}\n{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "ahujapa05@gmail.com",
+          "name": "Pratham",
+          "company": "",
+          "status": "sent",
+          "messageId": "<fa530076-5425-f46c-2305-657a2f8a8eec@gmail.com>",
+          "sentAt": "2026-10-01T15:35:08.383Z"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<739cdf07-dd24-4103-6152-b46556d63699@gmail.com>",
+          "sentAt": "2026-10-01T15:35:14.649Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<53896c03-d937-5b2c-03a7-8f1f2c61d911@gmail.com>",
+          "sentAt": "2026-10-01T15:35:21.193Z"
+        }
+      ],
+      "stats": {
+        "total": 3,
+        "sent": 3,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T15:35:21.235Z",
+      "completedAt": "2026-10-01T15:35:21.235Z",
+      "status": "completed"
+    },
+    {
       "id": "camp-1790868637612",
       "name": "HR Outreach - 1/10/2026 09:00 pm",
       "subject": "Application for {{role || \"Software Engineer\"}} • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",

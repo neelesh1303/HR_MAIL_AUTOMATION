@@ -186,7 +186,8 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
       return {
         filename: att.originalname || att.filename || path.basename(att.path),
         path: att.path,
-        contentType: att.mimetype || 'application/pdf'
+        contentType: att.mimetype || 'application/pdf',
+        contentDisposition: 'attachment'
       };
     }
     if (att.filename) {
@@ -195,7 +196,8 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
         return {
           filename: att.originalname || att.filename,
           path: fallback,
-          contentType: att.mimetype || 'application/pdf'
+          contentType: att.mimetype || 'application/pdf',
+          contentDisposition: 'attachment'
         };
       }
     }
@@ -204,19 +206,29 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
         filename: att.filename || att.originalname || 'resume.pdf',
         content: att.content,
         encoding: 'base64',
-        contentType: att.mimetype || 'application/pdf'
+        contentType: att.mimetype || 'application/pdf',
+        contentDisposition: 'attachment'
       };
     }
     return null;
   }).filter(Boolean);
 
   const mailOptions = {
-    from: `"${fromName}" <${fromEmail}>`,
+    from: {
+      name: fromName,
+      address: fromEmail
+    },
     to: cleanTo,
+    replyTo: fromEmail,
     subject: subject,
     text: plainText,
     html: htmlContent,
-    attachments: formattedAttachments
+    attachments: formattedAttachments,
+    headers: {
+      'X-Priority': '3',
+      'X-MSMail-Priority': 'Normal',
+      'Importance': 'Normal'
+    }
   };
 
   const result = await transporter.sendMail(mailOptions);

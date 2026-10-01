@@ -27,14 +27,14 @@ const DEFAULT_TEMPLATES = [
   {
     id: 't1',
     name: 'Standard Cold Job Outreach',
-    subject: 'Application for {{role || "Software Engineer"}} • {{name || "Hiring Team"}} at {{company || "your team"}}',
-    body: `Dear {{name || "Hiring Team"}},
+    subject: '{{role || "Software Engineer"}} inquiry - {{name}}',
+    body: `Hi {{name || "there"}},
 
 I hope you are doing well.
 
 I am writing to express my strong interest in {{role || "Software Engineer"}} opportunities at {{company || "your company"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills, clean coding practices, and problem-solving background to your team.
 
-I have attached my updated resume for your review. I would welcome the opportunity to connect for a brief 10-minute chat regarding upcoming openings at {{company}}.
+I have attached my updated resume for your review. Would you or someone on the team be open to a quick 5-minute chat regarding upcoming openings?
 
 Thank you for your time and consideration!
 
@@ -45,7 +45,7 @@ Best regards,
   {
     id: 't2',
     name: 'Data & Analytics Role Focused',
-    subject: 'Data Analyst / Engineer Application • {{company || "Company"}}',
+    subject: '{{role || "Data Engineer"}} role - {{name}}',
     body: `Hi {{name || "there"}},
 
 I hope this email finds you well.
@@ -61,10 +61,10 @@ Warm regards,
   {
     id: 't3',
     name: 'Brief & Direct Recruiter Pitch',
-    subject: 'Software Engineer • Resume for {{company || "Hiring Team"}}',
-    body: `Hello {{name || "Recruiter"}},
+    subject: 'Intro: {{name}} / {{role || "Software Engineer"}}',
+    body: `Hello {{name || "there"}},
 
-I am reaching out to explore potential software engineering opportunities with {{company || "your team"}}.
+I wanted to reach out directly to explore potential software engineering opportunities with {{company || "your team"}}.
 
 With a strong foundation in full-stack architecture, clean code practices, and rapid feature delivery, I am confident in my ability to make an immediate impact at {{company}}.
 
