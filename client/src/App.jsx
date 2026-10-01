@@ -26,53 +26,50 @@ import * as xlsx from 'xlsx';
 const DEFAULT_TEMPLATES = [
   {
     id: 't1',
-    name: 'Standard Cold Job Outreach',
+    name: 'Casual & Direct Outreach',
     subject: '{{role || "Software Engineer"}} inquiry - {{name}}',
     body: `Hi {{name || "there"}},
 
-I hope you are doing well.
+Hope you're having a good week.
 
-I am writing to express my strong interest in {{role || "Software Engineer"}} opportunities at {{company || "your company"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills, clean coding practices, and problem-solving background to your team.
+I've been following the engineering work at {{company || "your team"}} and wanted to reach out directly. I'm a developer specializing in full-stack web applications, React, and Node.js.
 
-I have attached my updated resume for your review. Would you or someone on the team be open to a quick 5-minute chat regarding upcoming openings?
+Are there any current or upcoming openings on the engineering team for {{role || "software developers"}}?
 
-Thank you for your time and consideration!
+I'd be glad to share my background and projects if you have a few minutes to chat.
 
-Best regards,
-{{sender_name || "Your Name"}}
-{{sender_email || "your-email@gmail.com"}}`
+Best,
+{{sender_name || "Your Name"}}`
   },
   {
     id: 't2',
-    name: 'Data & Analytics Role Focused',
-    subject: '{{role || "Data Engineer"}} role - {{name}}',
+    name: 'Short & Conversational Inquiry',
+    subject: 'Quick question from {{sender_name || "Neelesh"}}',
     body: `Hi {{name || "there"}},
 
-I hope this email finds you well.
+I came across {{company || "your company"}} and really liked what the team is building.
 
-I am reaching out regarding analytics and engineering roles at {{company || "your organization"}}. I have extensive experience building scalable data pipelines, data models, and analytical dashboards that drive tangible business impact.
+I'm currently exploring new {{role || "Software Engineering"}} opportunities. I have hands-on experience building web apps and scalable backend services.
 
-Please find my resume attached for your reference. I would love to connect for a quick 10-minute conversation regarding how I can contribute to {{company}}'s data initiatives.
+Would love to know if you're looking for developers to join the team.
 
-Warm regards,
-{{sender_name || "Your Name"}}
-{{sender_email || "your-email@gmail.com"}}`
+Thanks!
+{{sender_name || "Your Name"}}`
   },
   {
     id: 't3',
-    name: 'Brief & Direct Recruiter Pitch',
-    subject: 'Intro: {{name}} / {{role || "Software Engineer"}}',
-    body: `Hello {{name || "there"}},
+    name: 'Skill & Projects Focused',
+    subject: '{{name}} - {{role || "Full Stack Developer"}}',
+    body: `Hi {{name || "there"}},
 
-I wanted to reach out directly to explore potential software engineering opportunities with {{company || "your team"}}.
+Reaching out to see if {{company || "your team"}} has any open roles for {{role || "software developers"}}.
 
-With a strong foundation in full-stack architecture, clean code practices, and rapid feature delivery, I am confident in my ability to make an immediate impact at {{company}}.
+My core background is in modern JavaScript/TypeScript, React, and Node.js APIs. I've built several full-stack projects focusing on clean code and user performance.
 
-My resume is attached for your review. I would appreciate the chance to discuss any relevant openings.
+Happy to send over a link to my projects and GitHub if you're interested.
 
-Thank you,
-{{sender_name || "Your Name"}}
-{{sender_email || "your-email@gmail.com"}}`
+Best regards,
+{{sender_name || "Your Name"}}`
   }
 ];
 
