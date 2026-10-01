@@ -1,6 +1,183 @@
 {
   "campaigns": [
     {
+      "id": "camp-1790874096811",
+      "name": "HR Outreach - 1/10/2026 10:31 pm",
+      "subject": "{{role || \"Software Engineer\"}} inquiry - {{name}}",
+      "body": "Hi {{\"there\"}},\n\nI know your inbox is busy, so I'll keep this short.\n\nI'm a final-year Information Science student at NIE Mysore (CGPA 8.60) and a full-stack developer looking for a software developer role, internship or full-time.\n\nA quick snapshot of what I work with:\n• Full-stack: MERN stack (MongoDB, Express.js, React, Node.js) and Flask\n• Backend and data: RESTful APIs, JWT authentication, MongoDB, MySQL, Redis caching\n• AI/LLM: RAG, embeddings, and semantic search using the Gemini and Hugging Face APIs\n• Problem solving: 500+ DSA problems solved, and participated and won several hackathons\n\nYou can read more about my projects in my resume, which is attached, and it also has links to the code and a live demo.\nResume: https://drive.google.com/file/d/1_RzRY6DQlpsTmLjD3AwNvC9aRmSEknMc/view?usp=drivesdk\n\nIf your team has an opening now or soon, I'd be grateful if you'd consider my application. I'd welcome a quick chat if there's a fit.\n\nBest regards,\nNeelesh Kumar Tripathi\n+91 6387974286\nlinkedin.com/in/neelesh-kumar-tripathi | github.com/neelesh1303",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<63ac7e4b-3a78-4963-63ad-c5a2800c9a65@gmail.com>",
+          "sentAt": "2026-10-01T17:01:10.355Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<3a2b15e6-a1d8-8766-3d29-92ff73f0a477@gmail.com>",
+          "sentAt": "2026-10-01T17:01:16.871Z"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "dummy",
+          "company": "",
+          "status": "sent",
+          "messageId": "<0b4695a5-1cfd-8873-9519-6345776bc034@gmail.com>",
+          "sentAt": "2026-10-01T17:01:24.480Z"
+        },
+        {
+          "email": "shreya.t2124@gmail.com",
+          "name": "Mrs. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<3aba79e5-61f4-689a-0b08-e10192f36c3f@gmail.com>",
+          "sentAt": "2026-10-01T17:01:30.788Z"
+        },
+        {
+          "email": "neeleshktripathi04@gmail.com",
+          "name": "Mr. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<26f412d2-49c2-7390-71a4-be2803ff0d54@gmail.com>",
+          "sentAt": "2026-10-01T17:01:36.810Z"
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "sent": 5,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T17:01:36.811Z",
+      "completedAt": "2026-10-01T17:01:36.811Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790873948451",
+      "name": "HR Outreach - 1/10/2026 10:29 pm",
+      "subject": "{{role || \"Software Engineer\"}} inquiry - {{name}}",
+      "body": "Subject: MERN and Flask developer, resume with project demo\n\nHi {{name || \"there\"}},\n\nI know your inbox is busy, so I'll keep this short.\n\nI'm a final-year Information Science student at NIE Mysore (CGPA 8.60) and a full-stack developer looking for a software developer role, internship or full-time.\n\nA quick snapshot of what I work with:\n• Full-stack: MERN stack (MongoDB, Express.js, React, Node.js) and Flask\n• Backend and data: RESTful APIs, JWT authentication, MongoDB, MySQL, Redis caching\n• AI/LLM: RAG, embeddings, and semantic search using the Gemini and Hugging Face APIs\n• Problem solving: 500+ DSA problems solved, and 4th place among 100+ teams at the DevJams hackathon at VIT\n\nYou can read more about my projects in my resume, which is attached, and it also has links to the code and a live demo.\nResume: https://drive.google.com/file/d/1_RzRY6DQlpsTmLjD3AwNvC9aRmSEknMc/view?usp=drivesdk\n\nIf your team has an opening now or soon, I'd be grateful if you'd consider my application. I'd welcome a quick chat if there's a fit.\n\nBest regards,\nNeelesh Kumar Tripathi\n+91 6387974286\nlinkedin.com/in/neelesh-kumar-tripathi | github.com/neelesh1303",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<f62c570d-53ee-1abb-3fe4-0471d04ebfab@gmail.com>",
+          "sentAt": "2026-10-01T16:58:43.185Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<3402bd90-e458-3387-eb67-a17bfef55986@gmail.com>",
+          "sentAt": "2026-10-01T16:58:49.962Z"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "dummy",
+          "company": "",
+          "status": "sent",
+          "messageId": "<9568b106-4ef1-fdf0-046a-c52ba750c291@gmail.com>",
+          "sentAt": "2026-10-01T16:58:56.342Z"
+        },
+        {
+          "email": "shreya.t2124@gmail.com",
+          "name": "Mrs. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<6c39f407-7ddc-fe7f-0b38-6ff4f7cff18c@gmail.com>",
+          "sentAt": "2026-10-01T16:59:01.980Z"
+        },
+        {
+          "email": "neeleshktripathi04@gmail.com",
+          "name": "Mr. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<ea90ba9c-3a07-5a20-dc76-3d07402125e4@gmail.com>",
+          "sentAt": "2026-10-01T16:59:08.451Z"
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "sent": 5,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T16:59:08.452Z",
+      "completedAt": "2026-10-01T16:59:08.452Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790872708242",
+      "name": "HR Outreach - 1/10/2026 10:08 pm",
+      "subject": "{{role || \"Software Engineer\"}} inquiry - {{name}}",
+      "body": "Hi {{name}},\n\nHope you're having a good week.\n\nI've been following the engineering work at {{company}} and wanted to reach out directly. I'm a developer specializing in full-stack web applications, React, and Node.js.\n\nAre there any current or upcoming openings on the engineering team for software developers?\n\nI'd be glad to share my background and projects if you have a few minutes to chat. You can find my resume attached. Thanks!\nhttps://drive.google.com/file/d/1_RzRY6DQlpsTmLjD3AwNvC9aRmSEknMc/view?usp=drivesdk\n\nBest,\nNeelesh",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<a7fb8bba-260c-0c21-2286-9c28199a75e3@gmail.com>",
+          "sentAt": "2026-10-01T16:38:04.396Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<cbf3ee82-6923-832c-d674-016436166a4c@gmail.com>",
+          "sentAt": "2026-10-01T16:38:10.128Z"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "dummy",
+          "company": "",
+          "status": "sent",
+          "messageId": "<6e953992-0ef4-0ec9-ee9d-79a7e101388f@gmail.com>",
+          "sentAt": "2026-10-01T16:38:15.947Z"
+        },
+        {
+          "email": "shreya.t2124@gmail.com",
+          "name": "Mrs. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<4ee08547-dac7-4c53-31d2-ce8bea2e98cf@gmail.com>",
+          "sentAt": "2026-10-01T16:38:21.448Z"
+        },
+        {
+          "email": "neeleshktripathi04@gmail.com",
+          "name": "Mr. Tripathi",
+          "company": "",
+          "status": "sent",
+          "messageId": "<ce80fdb6-39d8-245a-8682-d950567f9be2@gmail.com>",
+          "sentAt": "2026-10-01T16:38:28.242Z"
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "sent": 5,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T16:38:28.268Z",
+      "completedAt": "2026-10-01T16:38:28.268Z",
+      "status": "completed"
+    },
+    {
       "id": "camp-1790872335814",
       "name": "HR Outreach - 1/10/2026 10:02 pm",
       "subject": "{{role || \"Software Engineer\"}} inquiry - {{name}}",
@@ -995,36 +1172,22 @@
   ],
   "templates": [
     {
-      "id": "tpl-1",
-      "name": "Professional Partnership / B2B Outreach",
-      "category": "Sales & BD",
-      "subject": "Partnership opportunity with {{company || \"your team\"}} & PostMaster",
-      "body": "<p>Hi {{first_name || \"there\"}},</p>\n<p>I hope this email finds you well!</p>\n<p>I have been following the incredible growth at <strong>{{company || \"your organization\"}}</strong> and wanted to reach out directly regarding our shared work in digital acceleration.</p>\n<p>We recently helped similar teams streamline their workflows and increase client engagement by over <strong>35%</strong> within 30 days.</p>\n<p>I've attached our brief overview document for your review. Would you be open to a 10-minute introductory call next Tuesday or Wednesday?</p>\n<p>Best regards,<br><strong>{{sender_name || \"Alex Morgan\"}}</strong><br>PostMaster Studio</p>",
-      "createdAt": "2026-09-30T09:31:26.812Z"
+      "id": "t1",
+      "name": "Casual & Direct Outreach",
+      "subject": "Software Engineer Intern/Fresher roles inquiry- Neelesh Kumar Tripathi",
+      "body": "Hi {{name || \"there\"}},\n\nHope you're having a good week.\n\nI've been following the engineering work at {{company || \"your team\"}} and wanted to reach out directly. I'm a developer specializing in full-stack web applications, React, and Node.js.\n\nAre there any current or upcoming openings on the engineering team for software developers / freshers?\n\nI'd be glad to share my background and projects if you have a few minutes to chat.\n\nBest,\n{{sender_name || \"Neelesh Kumar Tripathi\"}}"
     },
     {
-      "id": "tpl-2",
-      "name": "Job Application & Portfolio Follow-up",
-      "category": "Career",
-      "subject": "Application for {{role || \"Open Role\"}} &bull; {{first_name}} {{last_name}}",
-      "body": "<p>Dear {{name || \"Hiring Team\"}},</p>\n<p>I am writing to express my strong interest in the <strong>{{role || \"Software Specialist\"}}</strong> position at <strong>{{company || \"your esteemed company\"}}</strong>.</p>\n<p>With a proven track record of delivering high-impact projects and scalable architectures, I am excited about the prospect of contributing to your team's upcoming milestones.</p>\n<p>Please find my updated resume and portfolio presentation attached. I would welcome the opportunity to discuss how my skill set aligns with your current priorities.</p>\n<p>Thank you for your time and consideration.</p>\n<p>Sincerely,<br><strong>{{sender_name || \"Your Name\"}}</strong></p>",
-      "createdAt": "2026-09-30T09:31:26.813Z"
+      "id": "t2",
+      "name": "Short & Conversational Inquiry",
+      "subject": "Software Engineer Intern/Fresher roles inquiry- Neelesh Kumar Tripathi",
+      "body": "Hi {{name || \"there\"}},\n\nI came across {{company || \"your company\"}} and really liked what the team is building.\n\nI'm currently exploring Software Engineering / Intern / Fresher opportunities. I have hands-on experience building web apps and scalable backend services.\n\nWould love to know if you're looking for developers to join the team.\n\nThanks!\n{{sender_name || \"Neelesh Kumar Tripathi\"}}"
     },
     {
-      "id": "tpl-3",
-      "name": "Exclusive Event & Product Launch Invitation",
-      "category": "Marketing",
-      "subject": "VIP Invitation: Exclusive Access for {{name || \"You\"}}",
-      "body": "<p>Hello {{first_name || \"Valued Guest\"}},</p>\n<p>We are delighted to extend a special invitation to you for our exclusive upcoming launch event.</p>\n<p>As a key leader in the industry, we want to provide you with early access to our newest capabilities before public release.</p>\n<ul>\n  <li><strong>Date:</strong> October 15th, 2026</li>\n  <li><strong>Format:</strong> Live Interactive Stream & Private Q&A</li>\n  <li><strong>Access Code:</strong> VIP-{{custom_code || \"POSTMASTER\"}}</li>\n</ul>\n<p>Please check the attached agenda document for complete session details and speaker line-up. Looking forward to hosting you!</p>\n<p>Warmly,<br><strong>The Events Team</strong></p>",
-      "createdAt": "2026-09-30T09:31:26.813Z"
-    },
-    {
-      "id": "tpl-4",
-      "name": "Client Invoice & Documentation Dispatch",
-      "category": "Finance",
-      "subject": "Invoice #{{invoice_no || \"2026-09\"}} for {{company || \"Services Rendered\"}}",
-      "body": "<p>Hi {{first_name || \"Client\"}},</p>\n<p>Thank you for your ongoing partnership with us. Attached please find invoice <strong>#{{invoice_no || \"INV-001\"}}</strong> for the recent milestones completed.</p>\n<p><strong>Summary:</strong></p>\n<ul>\n  <li><strong>Service:</strong> {{service_name || \"Digital Consulting & Delivery\"}}</li>\n  <li><strong>Total Due:</strong> {{amount || \"$1,500.00\"}}</li>\n  <li><strong>Due Date:</strong> {{due_date || \"Within 14 days\"}}</li>\n</ul>\n<p>If you have any questions regarding the breakdown or payment options, please feel free to reply directly to this email.</p>\n<p>Kind regards,<br><strong>Accounts & Finance Team</strong></p>",
-      "createdAt": "2026-09-30T09:31:26.813Z"
+      "id": "t3",
+      "name": "Skill & Projects Focused",
+      "subject": "Software Engineer Intern/Fresher roles inquiry- Neelesh Kumar Tripathi",
+      "body": "Hi {{name || \"there\"}},\n\nReaching out to see if {{company || \"your team\"}} has any open roles for software engineering freshers / interns.\n\nMy core background is in modern JavaScript/TypeScript, React, and Node.js APIs. I've built several full-stack projects focusing on clean code and user performance.\n\nHappy to send over a link to my projects and GitHub if you're interested.\n\nBest regards,\n{{sender_name || \"Neelesh Kumar Tripathi\"}}"
     }
   ]
 }
