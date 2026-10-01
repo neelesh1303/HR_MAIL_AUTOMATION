@@ -60,6 +60,49 @@
   ],
   "campaigns": [
     {
+      "id": "camp-1790866919203",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "senderEmail": "neeleshwork01@gmail.com",
+      "recipients": [
+        {
+          "email": "ahujapa05@gmail.com",
+          "name": "Pratham",
+          "company": "",
+          "status": "sent",
+          "messageId": "<50143b7e-7e20-bb18-5c4b-697470c3b99a@gmail.com>",
+          "sentAt": "2026-10-01T15:01:43.024Z"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya",
+          "company": "",
+          "status": "sent",
+          "messageId": "<fb4a494a-ea6b-a008-1cc8-ddeddcecf285@gmail.com>",
+          "sentAt": "2026-10-01T15:01:50.388Z"
+        },
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<9d6e040c-6408-3ab0-d346-71be2a5afd40@gmail.com>",
+          "sentAt": "2026-10-01T15:01:59.203Z"
+        }
+      ],
+      "stats": {
+        "total": 3,
+        "sent": 3,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T15:01:59.245Z",
+      "completedAt": "2026-10-01T15:01:59.245Z",
+      "status": "completed"
+    },
+    {
       "id": "camp-1790866706823",
       "name": "HR Campaign - 1/10/2026",
       "subject": "Application for Software Engineer • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
@@ -436,10 +479,10 @@
       "status": "completed"
     },
     {
-      "id": "camp-1790866919203",
+      "id": "camp-1790867371583",
       "name": "HR Campaign - 1/10/2026",
       "subject": "Application for Software Engineer • {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
-      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},\n\nI hope you are doing well.\n\nI am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.\n\nI have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.\n\nThank you for your time and consideration!\n\nBest regards,\n{{sender_name || \"Your Name\"}}\n{{sender_email || \"your-email@gmail.com\"}}",
       "senderName": "Neelesh Kumar Tripathi",
       "senderEmail": "neeleshwork01@gmail.com",
       "recipients": [
@@ -447,35 +490,32 @@
           "email": "ahujapa05@gmail.com",
           "name": "Pratham",
           "company": "",
-          "status": "sent",
-          "messageId": "<50143b7e-7e20-bb18-5c4b-697470c3b99a@gmail.com>",
-          "sentAt": "2026-10-01T15:01:43.024Z"
+          "status": "skipped",
+          "error": "Previously contacted from neeleshwork01@gmail.com (Duplicate prevented)"
         },
         {
           "email": "s.shreya2124@gmail.com",
           "name": "Shreya",
           "company": "",
-          "status": "sent",
-          "messageId": "<fb4a494a-ea6b-a008-1cc8-ddeddcecf285@gmail.com>",
-          "sentAt": "2026-10-01T15:01:50.388Z"
+          "status": "skipped",
+          "error": "Previously contacted from neeleshwork01@gmail.com (Duplicate prevented)"
         },
         {
           "email": "neeleshtripathi101@gmail.com",
           "name": "Neelesh",
           "company": "",
-          "status": "sent",
-          "messageId": "<9d6e040c-6408-3ab0-d346-71be2a5afd40@gmail.com>",
-          "sentAt": "2026-10-01T15:01:59.203Z"
+          "status": "skipped",
+          "error": "Previously contacted from neeleshwork01@gmail.com (Duplicate prevented)"
         }
       ],
       "stats": {
         "total": 3,
-        "sent": 3,
-        "skipped": 0,
+        "sent": 0,
+        "skipped": 3,
         "failed": 0
       },
-      "createdAt": "2026-10-01T15:01:59.245Z",
-      "completedAt": "2026-10-01T15:01:59.245Z",
+      "createdAt": "2026-10-01T15:09:31.637Z",
+      "completedAt": "2026-10-01T15:09:31.637Z",
       "status": "completed"
     }
   ]

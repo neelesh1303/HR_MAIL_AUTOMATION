@@ -158,7 +158,7 @@ router.post('/direct', async (req, res) => {
       subject, 
       body, 
       attachments = [],
-      skipDuplicates = true
+      skipDuplicates = false
     } = req.body;
 
     if (provider === 'gmail' && (!senderEmail || !appPassword)) {

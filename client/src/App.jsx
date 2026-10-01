@@ -99,7 +99,7 @@ export default function App() {
   ]);
   const [isUploadingSheet, setIsUploadingSheet] = useState(false);
   const [sheetFileName, setSheetFileName] = useState('');
-  const [skipDuplicates, setSkipDuplicates] = useState(true);
+  const [skipDuplicates, setSkipDuplicates] = useState(false);
 
   // 3. Email Template & Personalization
   const [selectedTemplateId, setSelectedTemplateId] = useState('t1');
