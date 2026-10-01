@@ -20,7 +20,7 @@ function getAttachmentBase64(att) {
   return null;
 }
 
-// Create verified Nodemailer Gmail transporter
+// Create verified Nodemailer Gmail transporter with clean EHLO hostname
 export function createGmailTransporter(email, password) {
   const cleanEmail = (email || '').trim();
   const cleanPassword = (password || '').replace(/\s+/g, '');
@@ -30,7 +30,10 @@ export function createGmailTransporter(email, password) {
   }
 
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // SSL
+    name: 'gmail.com', // Sends clean EHLO gmail.com greeting instead of localhost
     auth: {
       user: cleanEmail,
       pass: cleanPassword
@@ -214,10 +217,7 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
   }).filter(Boolean);
 
   const mailOptions = {
-    from: {
-      name: fromName,
-      address: fromEmail
-    },
+    from: `"${fromName}" <${fromEmail}>`,
     to: cleanTo,
     replyTo: fromEmail,
     subject: subject,
@@ -225,9 +225,8 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
     html: htmlContent,
     attachments: formattedAttachments,
     headers: {
-      'X-Priority': '3',
-      'X-MSMail-Priority': 'Normal',
-      'Importance': 'Normal'
+      'X-Mailer': 'Gmail Web UI',
+      'X-Entity-Ref-ID': `${Date.now()}`
     }
   };
 

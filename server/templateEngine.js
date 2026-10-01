@@ -82,9 +82,8 @@ export function renderTemplate(templateString, recipientData = {}, globalVars = 
 
 export function textToHtml(text) {
   if (!text) return '';
-  // Convert newlines to standard Gmail-style HTML breaks
   const htmlFormatted = text.replace(/\n/g, '<br>');
-  return `<div dir="ltr" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5; color: #222222;">${htmlFormatted}</div>`;
+  return `<div dir="ltr">${htmlFormatted}</div>`;
 }
 
 export function htmlToText(html) {
