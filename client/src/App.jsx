@@ -34,7 +34,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 't1',
     name: 'Standard Cold Job Outreach (Role & Company targeted)',
-    subject: 'Application for Software Engineer &bull; {{name || "Hiring Team"}} at {{company || "your team"}}',
+    subject: 'Application for Software Engineer • {{name || "Hiring Team"}} at {{company || "your team"}}',
     body: `Dear {{name || "Hiring Team"}},
 
 I hope you are doing well.
@@ -52,7 +52,7 @@ Best regards,
   {
     id: 't2',
     name: 'Data & Analytics Role Focused',
-    subject: 'Data Analyst / Engineer Application &bull; {{company || "Company"}}',
+    subject: 'Data Analyst / Engineer Application • {{company || "Company"}}',
     body: `Hi {{name || "there"}},
 
 I hope this email finds you well.
@@ -67,7 +67,7 @@ Warm regards,
   {
     id: 't3',
     name: 'Brief & Direct Recruiter Pitch',
-    subject: 'Software Engineer &bull; Resume for {{company || "Hiring Team"}}',
+    subject: 'Software Engineer • Resume for {{company || "Hiring Team"}}',
     body: `Hello {{name || "Recruiter"}},
 
 I am reaching out to explore potential software engineering opportunities with {{company || "your team"}}.

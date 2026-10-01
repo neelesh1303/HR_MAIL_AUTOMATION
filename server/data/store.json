@@ -60,6 +60,267 @@
   ],
   "campaigns": [
     {
+      "id": "camp-1790865143451",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "2023is_neeleshkumartripathi_b@nie.ac.in",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<04e7e6e6-147b-f5c4-d301-04afa4f894d6@gmail.com>",
+          "sentAt": "2026-10-01T14:32:23.451Z"
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "sent": 1,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:32:23.451Z",
+      "completedAt": "2026-10-01T14:32:23.451Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790864929532",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "h",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshtripathi36@gmail.com",
+          "name": "shubh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "tingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "pingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya Tiwari",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshktripathi04@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        }
+      ],
+      "stats": {
+        "total": 6,
+        "sent": 0,
+        "skipped": 6,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:28:49.532Z",
+      "completedAt": "2026-10-01T14:28:49.532Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790864810192",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "h",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshtripathi36@gmail.com",
+          "name": "shubh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "tingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "pingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya Tiwari",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshktripathi04@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "sent",
+          "messageId": "<028cdfb1-078c-6daf-48ba-1b058712e8a7@gmail.com>",
+          "sentAt": "2026-10-01T14:26:50.192Z"
+        }
+      ],
+      "stats": {
+        "total": 6,
+        "sent": 1,
+        "skipped": 5,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:26:50.192Z",
+      "completedAt": "2026-10-01T14:26:50.192Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790864711458",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "h",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshtripathi36@gmail.com",
+          "name": "shubh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "tingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "pingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya Tiwari",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "Neelesh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        }
+      ],
+      "stats": {
+        "total": 6,
+        "sent": 0,
+        "skipped": 6,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:25:11.458Z",
+      "completedAt": "2026-10-01T14:25:11.458Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790864542263",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "neeleshtripathi101@gmail.com",
+          "name": "neelesh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "neeleshtripathi36@gmail.com",
+          "name": "shubh",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "tripathineelesh101@gmail.com",
+          "name": "tingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "dummymail130304.2@gmail.com",
+          "name": "pingu",
+          "company": "",
+          "status": "skipped",
+          "error": "Previously contacted in prior session (Duplicate prevented)"
+        },
+        {
+          "email": "s.shreya2124@gmail.com",
+          "name": "Shreya Tiwari",
+          "company": "",
+          "status": "sent",
+          "messageId": "<e832a378-5dc1-e2a0-647f-b991d149be02@gmail.com>",
+          "sentAt": "2026-10-01T14:22:22.263Z"
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "sent": 1,
+        "skipped": 4,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:22:22.286Z",
+      "completedAt": "2026-10-01T14:22:22.286Z",
+      "status": "completed"
+    },
+    {
       "id": "camp-1790793300533",
       "name": "HR Campaign - 1/10/2026",
       "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
@@ -107,6 +368,32 @@
       },
       "createdAt": "2026-09-30T18:35:00.545Z",
       "completedAt": "2026-09-30T18:35:00.545Z",
+      "status": "completed"
+    },
+    {
+      "id": "camp-1790865878287",
+      "name": "HR Campaign - 1/10/2026",
+      "subject": "Application for Software Engineer &bull; {{name || \"Hiring Team\"}} at {{company || \"your team\"}}",
+      "body": "Dear {{name || \"Hiring Team\"}},<br><br>I hope you are doing well.<br><br>I am writing to express my interest in software engineering opportunities at {{company || \"your company\"}}. Having followed {{company}}'s recent work and technical vision, I am excited about the opportunity to bring my development skills and problem-solving background to your engineering team.<br><br>I have attached my updated resume for your review. I would welcome the opportunity to discuss how my skill set aligns with current or upcoming openings at {{company}}.<br><br>Thank you for your time and consideration!<br><br>Best regards,<br>{{sender_name || \"Your Name\"}}<br>{{sender_email || \"your-email@gmail.com\"}}",
+      "senderName": "Neelesh Kumar Tripathi",
+      "recipients": [
+        {
+          "email": "ahujapa05@gmail.com",
+          "name": "Pratham",
+          "company": "",
+          "status": "sent",
+          "messageId": "<3957692b-e5d3-2727-a707-73933feffd9e@gmail.com>",
+          "sentAt": "2026-10-01T14:44:38.287Z"
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "sent": 1,
+        "skipped": 0,
+        "failed": 0
+      },
+      "createdAt": "2026-10-01T14:44:38.287Z",
+      "completedAt": "2026-10-01T14:44:38.287Z",
       "status": "completed"
     }
   ]

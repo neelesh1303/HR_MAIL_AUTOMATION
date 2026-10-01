@@ -22,7 +22,7 @@ const defaultTemplates = [
     id: 'tpl-2',
     name: 'Job Application & Portfolio Follow-up',
     category: 'Career',
-    subject: 'Application for {{role || "Open Role"}} &bull; {{first_name}} {{last_name}}',
+    subject: 'Application for {{role || "Open Role"}} • {{first_name}} {{last_name}}',
     body: `<p>Dear {{name || "Hiring Team"}},</p>
 <p>I am writing to express my strong interest in the <strong>{{role || "Software Specialist"}}</strong> position at <strong>{{company || "your esteemed company"}}</strong>.</p>
 <p>With a proven track record of delivering high-impact projects and scalable architectures, I am excited about the prospect of contributing to your team's upcoming milestones.</p>
