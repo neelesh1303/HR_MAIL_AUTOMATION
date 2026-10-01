@@ -103,7 +103,19 @@ export async function createTransporter(explicitCredentials = null) {
 // Test credentials / connection for Gmail SMTP, Resend HTTPS API, or Brevo HTTPS API
 export async function testConnection(credentials = null) {
   if (!credentials) {
-    return { success: false, error: 'No credentials provided' };
+    const auth = db.getAuth();
+    if (auth.smtpUser && auth.smtpPassword) {
+      credentials = {
+        provider: 'gmail',
+        email: auth.smtpUser,
+        password: auth.smtpPassword,
+        name: auth.name
+      };
+    } else if (auth.type === 'oauth' && auth.tokens) {
+      credentials = { provider: 'gmail' };
+    } else {
+      return { success: false, error: 'No credentials configured' };
+    }
   }
 
   const provider = credentials.provider || 'gmail';
@@ -127,7 +139,7 @@ export async function testConnection(credentials = null) {
     return { success: true, email: credentials.email || 'Brevo Key Ready', message: 'Brevo API Key verified!' };
   }
 
-  // Gmail SMTP
+  // Gmail SMTP / OAuth
   try {
     const { transporter, senderEmail } = await createTransporter(credentials);
     await transporter.verify();
@@ -135,7 +147,7 @@ export async function testConnection(credentials = null) {
   } catch (error) {
     let msg = error.message || 'Connection test failed.';
     if (msg.includes('Connection timeout') || msg.includes('ETIMEDOUT')) {
-      msg = 'Connection timeout: Your cloud host (Render/Railway) blocks outbound SMTP sockets. Please switch to Resend API tab above (100% Free over HTTPS).';
+      msg = 'Connection timeout: Your cloud host (Render/Railway) blocks outbound SMTP sockets. Please switch to Resend API or Brevo tab (100% Free over HTTPS).';
     }
     return { success: false, error: msg };
   }
@@ -186,9 +198,16 @@ export async function sendSingleEmail({ to, subject, htmlContent, textContent, a
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.message || data.error || 'Resend dispatch failed');
+      let errMsg = data.message || data.error || `Resend dispatch failed (HTTP ${res.status})`;
+      if (typeof errMsg === 'object' && errMsg !== null) {
+        errMsg = JSON.stringify(errMsg);
+      }
+      if (typeof errMsg === 'string' && (errMsg.includes('only send testing emails to your own email address') || errMsg.includes('resend.com/domains'))) {
+        errMsg = `${errMsg} (Tip: On Resend Free Tier without a verified custom domain, you can only send to your own registered email. To send to arbitrary HR emails, use 'Gmail App Password' or 'Brevo API' tab above!)`;
+      }
+      throw new Error(errMsg);
     }
 
     return {
@@ -232,9 +251,10 @@ export async function sendSingleEmail({ to, subject, htmlContent, textContent, a
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.message || 'Brevo dispatch failed');
+      let errMsg = data.message || (data.errors ? JSON.stringify(data.errors) : `Brevo dispatch failed (HTTP ${res.status})`);
+      throw new Error(errMsg);
     }
 
     return {
