@@ -223,11 +223,7 @@ export async function sendEmail({ to, subject, body, attachments = [], senderNam
     subject: subject,
     text: plainText,
     html: htmlContent,
-    attachments: formattedAttachments,
-    headers: {
-      'X-Mailer': 'Gmail Web UI',
-      'X-Entity-Ref-ID': `${Date.now()}`
-    }
+    attachments: formattedAttachments
   };
 
   const result = await transporter.sendMail(mailOptions);
