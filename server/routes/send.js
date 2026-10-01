@@ -1,6 +1,6 @@
 import express from 'express';
 import { campaignQueue } from '../services/campaignQueue.js';
-import { sendSingleEmail, testConnection } from '../services/emailService.js';
+import { sendSingleEmail, testConnection, textToHtml } from '../services/emailService.js';
 import { renderTemplate } from '../services/templateEngine.js';
 import { db } from '../db.js';
 
@@ -27,13 +27,18 @@ router.get('/status', (req, res) => {
 
 // Render dynamic preview for a recipient
 router.post('/preview', (req, res) => {
-  const { subject, body, recipient, senderName } = req.body;
+  const { subject, body, recipient, senderName, senderEmail } = req.body;
   if (!subject && !body) {
     return res.status(400).json({ error: 'Subject and body are required' });
   }
 
-  const renderedSubject = renderTemplate(subject || '', recipient || {}, { sender_name: senderName });
-  const renderedBody = renderTemplate(body || '', recipient || {}, { sender_name: senderName });
+  const globalVars = {
+    sender_name: senderName || 'Your Name',
+    sender_email: senderEmail || 'your-email@gmail.com'
+  };
+
+  const renderedSubject = renderTemplate(subject || '', recipient || {}, globalVars);
+  const renderedBody = renderTemplate(body || '', recipient || {}, globalVars);
 
   res.json({
     renderedSubject,
@@ -43,7 +48,7 @@ router.post('/preview', (req, res) => {
 
 // Send single test email
 router.post('/test', async (req, res) => {
-  const { testEmail, subject, body, attachments = [], senderName = '', sampleRecipient = {} } = req.body;
+  const { testEmail, subject, body, attachments = [], senderName = '', senderEmail = '', sampleRecipient = {}, credentials } = req.body;
 
   if (!testEmail) {
     return res.status(400).json({ error: 'Test recipient email is required' });
@@ -53,20 +58,26 @@ router.post('/test', async (req, res) => {
     const context = {
       ...sampleRecipient,
       email: testEmail,
-      name: sampleRecipient.name || 'Sample Recipient'
+      name: sampleRecipient.name || 'Sample Recipient',
+      company: sampleRecipient.company || 'Sample Company',
+      role: sampleRecipient.role || 'Software Engineer'
     };
 
-    const renderedSubject = `[TEST PREVIEW] ` + renderTemplate(subject, context, { sender_name: senderName });
-    const renderedBody = `<div style="border-bottom: 2px dashed #f59e0b; padding-bottom: 12px; margin-bottom: 16px; font-family: sans-serif; font-size: 13px; color: #b45309; background: #fffbeb; padding: 10px; border-radius: 6px;">
-      ⚠️ <strong>PostMaster Test Dispatch:</strong> This is a sample personalized email preview delivered to verify formatting and attachments.
-    </div>` + renderTemplate(body, context, { sender_name: senderName });
+    const globalVars = {
+      sender_name: senderName || credentials?.name || 'Your Name',
+      sender_email: senderEmail || credentials?.email || 'your-email@gmail.com'
+    };
+
+    const renderedSubject = renderTemplate(subject, context, globalVars);
+    const renderedBody = renderTemplate(body, context, globalVars);
 
     const result = await sendSingleEmail({
       to: testEmail,
-      subject: renderedSubject,
+      subject: `[TEST] ${renderedSubject}`,
       htmlContent: renderedBody,
       attachments,
-      senderName
+      senderName: senderName || credentials?.name,
+      credentials
     });
 
     res.json({
@@ -80,9 +91,9 @@ router.post('/test', async (req, res) => {
   }
 });
 
-// Launch full campaign
+// Launch full background campaign
 router.post('/campaign', async (req, res) => {
-  const { name, subject, body, recipients, attachments = [], senderName = '', replyTo = '', delayMs, jitterMs } = req.body;
+  const { name, subject, body, recipients, attachments = [], senderName = '', replyTo = '', delayMs, jitterMs, credentials } = req.body;
 
   if (!subject || !body) {
     return res.status(400).json({ error: 'Email subject and body are required' });
@@ -102,7 +113,8 @@ router.post('/campaign', async (req, res) => {
       senderName,
       replyTo,
       delayMs: delayMs || 2000,
-      jitterMs: jitterMs || 1000
+      jitterMs: jitterMs || 1000,
+      credentials
     });
 
     res.json({
@@ -117,25 +129,23 @@ router.post('/campaign', async (req, res) => {
   }
 });
 
-// Pause campaign
+// Pause / Resume / Stop endpoints
 router.post('/pause', (req, res) => {
   const paused = campaignQueue.pause();
   res.json({ success: paused, state: campaignQueue.state });
 });
 
-// Resume campaign
 router.post('/resume', (req, res) => {
   const resumed = campaignQueue.resume();
   res.json({ success: resumed, state: campaignQueue.state });
 });
 
-// Stop campaign
 router.post('/stop', (req, res) => {
   const stopped = campaignQueue.stop();
   res.json({ success: stopped, state: campaignQueue.state });
 });
 
-// Direct Simplified Dispatch Endpoint (With HR Duplicate Prevention & Audit Log)
+// Direct Simplified Dispatch Endpoint (With Per-Sender Duplicate Prevention & Detailed Audit Log)
 router.post('/direct', async (req, res) => {
   try {
     const { 
@@ -167,12 +177,13 @@ router.post('/direct', async (req, res) => {
       return res.status(400).json({ error: 'Email subject and message body are required' });
     }
 
+    const currentSenderEmail = (senderEmail || '').toLowerCase().trim();
     const credentials = {
       provider,
       apiKey: (apiKey || appPassword || '').trim(),
-      email: (senderEmail || '').trim(),
+      email: currentSenderEmail,
       password: (appPassword || apiKey || '').replace(/\s+/g, ''),
-      name: senderName || (senderEmail ? senderEmail.split('@')[0] : 'Applicant')
+      name: senderName || (currentSenderEmail ? currentSenderEmail.split('@')[0] : 'Applicant')
     };
 
     // Test credentials first
@@ -183,15 +194,20 @@ router.post('/direct', async (req, res) => {
       });
     }
 
-    // Load previously sent emails for duplicate prevention (like VishwasGurao's CampaignTracker)
+    // Load previously sent emails ONLY for THIS sender account
     const previousCampaigns = db.getCampaigns() || [];
     const previouslySentSet = new Set();
+    
     previousCampaigns.forEach(c => {
-      (c.recipients || []).forEach(r => {
-        if (r.status === 'sent' && r.email) {
-          previouslySentSet.add(r.email.toLowerCase().trim());
-        }
-      });
+      const campSender = (c.senderEmail || '').toLowerCase().trim();
+      // Only deduct duplicates if this same sender account previously emailed them
+      if (campSender && campSender === currentSenderEmail) {
+        (c.recipients || []).forEach(r => {
+          if (r.status === 'sent' && r.email) {
+            previouslySentSet.add(r.email.toLowerCase().trim());
+          }
+        });
+      }
     });
 
     const results = [];
@@ -212,22 +228,27 @@ router.post('/direct', async (req, res) => {
         continue;
       }
 
-      // Check duplicate
+      // Check per-sender duplicate
       if (skipDuplicates && previouslySentSet.has(email)) {
         results.push({
           email,
           name,
           company,
           status: 'skipped',
-          error: 'Previously contacted in prior session (Duplicate prevented)'
+          error: `Previously contacted from ${currentSenderEmail} (Duplicate prevented)`
         });
         skippedCount++;
         continue;
       }
 
       const context = typeof rawRecipient === 'object' ? { ...rawRecipient, email, name, company, role } : { email, name, company, role };
-      const renderedSubject = renderTemplate(subject, context, { sender_name: credentials.name });
-      const renderedBody = renderTemplate(body, context, { sender_name: credentials.name });
+      const globalVars = {
+        sender_name: credentials.name,
+        sender_email: credentials.email
+      };
+
+      const renderedSubject = renderTemplate(subject, context, globalVars);
+      const renderedBody = renderTemplate(body, context, globalVars);
 
       try {
         const dispatchResult = await sendSingleEmail({
@@ -274,6 +295,7 @@ router.post('/direct', async (req, res) => {
       subject,
       body,
       senderName: credentials.name,
+      senderEmail: currentSenderEmail,
       recipients: results,
       stats: {
         total: recipients.length,

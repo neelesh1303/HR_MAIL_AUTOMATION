@@ -269,7 +269,7 @@ export default function App() {
           senderName: senderName.trim(),
           recipients: hrList,
           subject: subject.trim(),
-          body: body.trim().replace(/\n/g, '<br>'),
+          body: body.trim(),
           attachments: resumeFile ? [resumeFile] : [],
           skipDuplicates: skipDuplicates
         })
