@@ -82,20 +82,9 @@ export function renderTemplate(templateString, recipientData = {}, globalVars = 
 
 export function textToHtml(text) {
   if (!text) return '';
-  if (text.includes('<p>') || text.includes('<div>') || text.includes('<br>')) {
-    return text;
-  }
-  const paragraphs = text
-    .split(/\n\s*\n/)
-    .map(p => `<p style="margin: 0 0 14px 0;">${p.replace(/\n/g, '<br>')}</p>`)
-    .join('\n');
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b; margin: 0; padding: 12px 0;">
-  ${paragraphs}
-</body>
-</html>`;
+  // Convert newlines to standard Gmail-style HTML breaks
+  const htmlFormatted = text.replace(/\n/g, '<br>');
+  return `<div dir="ltr" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5; color: #222222;">${htmlFormatted}</div>`;
 }
 
 export function htmlToText(html) {
